@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 // Identifiants pré-remplis (édite ces 2 lignes pour changer)
 // ============================================================
 const DEMO_EMAIL = "manuebudget@gmail.com";
-const DEMO_PASSWORD = "Manuebudget2026";
+const DEMO_PASSWORD = "manuebudget105";
 // ============================================================
 
 export default function LoginPage() {
