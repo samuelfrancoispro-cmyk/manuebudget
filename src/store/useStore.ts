@@ -15,6 +15,7 @@ import type {
 interface State {
   loaded: boolean;
   loading: boolean;
+  loadedUserId: string | null;
 
   categories: Categorie[];
   transactions: Transaction[];
@@ -101,6 +102,7 @@ function strip<T extends object>(row: any): T {
 export const useStore = create<State>()((set, get) => ({
   loaded: false,
   loading: false,
+  loadedUserId: null,
   categories: [],
   transactions: [],
   recurrentes: [],
@@ -114,6 +116,7 @@ export const useStore = create<State>()((set, get) => ({
   clearLocal: () =>
     set({
       loaded: false,
+      loadedUserId: null,
       categories: [],
       transactions: [],
       recurrentes: [],
@@ -126,7 +129,21 @@ export const useStore = create<State>()((set, get) => ({
     }),
 
   loadAll: async (userId) => {
-    set({ loading: true });
+    // Reset complet avant de recharger : évite d'afficher les données du précédent user
+    set({
+      loading: true,
+      loaded: false,
+      loadedUserId: null,
+      categories: [],
+      transactions: [],
+      recurrentes: [],
+      comptesCourants: [],
+      comptes: [],
+      mouvements: [],
+      objectifs: [],
+      projets: [],
+      achatsProjet: [],
+    });
     try {
       const [
         cats,
@@ -191,6 +208,7 @@ export const useStore = create<State>()((set, get) => ({
       set({
         loaded: true,
         loading: false,
+        loadedUserId: userId,
         categories,
         comptesCourants,
         transactions: (txs.data ?? []).map((r: any) => strip<Transaction>(r)),

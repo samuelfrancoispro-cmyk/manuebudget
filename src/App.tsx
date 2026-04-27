@@ -17,16 +17,16 @@ import { useStore } from "./store/useStore";
 
 export default function App() {
   const { user, loading } = useAuth();
-  const { loaded, loading: storeLoading, loadAll, clearLocal } = useStore();
+  const { loaded, loadedUserId, loading: storeLoading, loadAll, clearLocal } = useStore();
 
   useEffect(() => {
-    if (user && !loaded && !storeLoading) {
+    if (user && user.id !== loadedUserId && !storeLoading) {
       loadAll(user.id);
     }
-    if (!user) {
+    if (!user && (loaded || loadedUserId)) {
       clearLocal();
     }
-  }, [user, loaded, storeLoading, loadAll, clearLocal]);
+  }, [user, loaded, loadedUserId, storeLoading, loadAll, clearLocal]);
 
   if (loading) return <SplashLoader label="Chargement…" />;
 
@@ -39,7 +39,9 @@ export default function App() {
     );
   }
 
-  if (!loaded) return <SplashLoader label="Synchronisation des données…" />;
+  if (!loaded || loadedUserId !== user.id) {
+    return <SplashLoader label="Synchronisation des données…" />;
+  }
 
   return (
     <>
