@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
@@ -27,6 +28,7 @@ const nav = [
   { to: "/epargne", label: "Épargne", icon: PiggyBank },
   { to: "/simulateur", label: "Simulateur", icon: Calculator },
   { to: "/parametres", label: "Paramètres", icon: Settings },
+  { to: "/aide", label: "Aide", icon: HelpCircle },
 ];
 
 export default function Layout() {

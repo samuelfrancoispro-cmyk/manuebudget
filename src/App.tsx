@@ -9,6 +9,7 @@ import Recurrents from "./pages/Recurrents";
 import Epargne from "./pages/Epargne";
 import Simulateur from "./pages/Simulateur";
 import Parametres from "./pages/Parametres";
+import Aide from "./pages/Aide";
 import LoginPage from "./pages/Login";
 import { Toaster } from "./components/ui/sonner";
 import { useAuth } from "./lib/auth";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/epargne" element={<Epargne />} />
           <Route path="/simulateur" element={<Simulateur />} />
           <Route path="/parametres" element={<Parametres />} />
+          <Route path="/aide" element={<Aide />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
