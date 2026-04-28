@@ -105,6 +105,18 @@ export interface RapportCSV {
   nbLignes: number;
 }
 
+/**
+ * Mapping CSV sauvegardé pour reconnaître automatiquement le format d'une banque.
+ * Le contenu détaillé du mapping (colonnes, format date/montant…) vit dans `lib/csvParser.ts`
+ * et est stocké en JSONB côté Supabase pour rester flexible.
+ */
+export interface BankProfile {
+  id: string;
+  nom: string;
+  fingerprint: string;
+  mapping: unknown; // CsvMapping — typé fortement à l'usage via lib/csvParser.ts
+}
+
 export interface RapportLigne {
   id: string;
   rapportId: string;

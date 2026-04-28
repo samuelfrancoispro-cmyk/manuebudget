@@ -160,6 +160,60 @@ const articles: Article[] = [
     ],
   },
   {
+    id: "rapports-csv",
+    titre: "Importer un relevé bancaire (CSV)",
+    categorie: "Rapports CSV",
+    motsCles: ["csv", "import", "relevé", "banque", "rapport", "analyse", "camembert"],
+    contenu: [
+      {
+        texte:
+          "L'onglet « Rapports » permet d'importer le CSV de relevé téléchargé depuis ton appli bancaire et d'obtenir une analyse automatique : camembert par catégorie, top dépenses, abonnements détectés et pistes d'économies.",
+      },
+      {
+        sous: "Banques compatibles",
+        texte:
+          "TOUTES les banques. L'import détecte automatiquement le séparateur (; , tab |), l'encodage (UTF-8 / Windows-1252), le format des dates (JJ/MM/AAAA, AAAA-MM-JJ…), le format des montants (FR « 1 234,56 » ou US « 1,234.56 ») et identifie les colonnes Date / Libellé / Montant par mots-clés FR + EN.",
+      },
+      {
+        sous: "Comment importer",
+        texte:
+          "Onglet « Rapports » → bouton « Importer CSV » → choisis ton fichier. Si l'app reconnaît le format (confiance ≥ 80 %), elle te montre directement l'aperçu. Sinon une fenêtre d'ajustement s'ouvre pour mapper manuellement les colonnes.",
+      },
+      {
+        sous: "Si la détection se trompe",
+        texte:
+          "Dans la fenêtre d'aperçu, clique « Ajuster le mapping » : tu peux corriger la colonne Date, Libellé, Montant (ou Débit/Crédit séparés), changer le format de date, le séparateur, etc. L'aperçu se met à jour en direct.",
+      },
+    ],
+  },
+  {
+    id: "rapports-profils",
+    titre: "Profils de banque (mapping mémorisé)",
+    categorie: "Rapports CSV",
+    motsCles: ["profil", "banque", "mapping", "mémoriser", "automatique", "fingerprint"],
+    contenu: [
+      {
+        texte:
+          "Dès qu'un format CSV a été ajusté manuellement une fois, tu peux le sauvegarder comme « profil de banque ». Les imports suivants avec les mêmes colonnes seront alors reconnus et importés automatiquement.",
+      },
+      {
+        sous: "Sauvegarder un profil",
+        texte:
+          "Dans la fenêtre d'ajustement du mapping, coche « Sauvegarder ce mapping comme profil » et donne-lui un nom (ex : « BNP Paribas perso », « Boursorama »). Les profils sont stockés sur ton compte Supabase — vider le cache navigateur ne les efface pas, et ils sont disponibles depuis tous tes appareils.",
+      },
+      {
+        sous: "Gérer les profils",
+        texte:
+          "Onglet « Rapports » → bouton « Profils ». Tu vois la liste de tes profils sauvegardés avec un résumé (stratégie montant, format date, séparateur). Le bouton poubelle supprime un profil.",
+      },
+      {
+        sous: "Astuce",
+        texte:
+          "Un profil = une empreinte des en-têtes du CSV. Si ta banque change le nom d'une colonne dans son export, l'empreinte change et le profil ne sera plus reconnu — il faudra le ré-ajuster une fois et le sauvegarder à nouveau.",
+      },
+    ],
+  },
+  {
     id: "objectifs",
     titre: "Objectifs d'épargne",
     categorie: "Épargne",

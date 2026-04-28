@@ -12,6 +12,7 @@ import type {
   AchatProjet,
   RapportCSV,
   RapportLigne,
+  BankProfile,
 } from "@/types";
 
 interface State {
@@ -30,6 +31,7 @@ interface State {
   achatsProjet: AchatProjet[];
   rapports: RapportCSV[];
   rapportLignes: RapportLigne[];
+  bankProfiles: BankProfile[];
 
   loadAll: (userId: string) => Promise<void>;
   clearLocal: () => void;
@@ -77,6 +79,10 @@ interface State {
     lignes: Omit<RapportLigne, "id" | "rapportId">[]
   ) => Promise<RapportCSV>;
   deleteRapport: (id: string) => Promise<void>;
+
+  /** Profils CSV banques sauvegardés (un par fingerprint d'en-têtes). Upsert si même fingerprint. */
+  saveBankProfile: (p: Omit<BankProfile, "id">) => Promise<BankProfile>;
+  deleteBankProfile: (id: string) => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -124,6 +130,7 @@ export const useStore = create<State>()((set, get) => ({
   achatsProjet: [],
   rapports: [],
   rapportLignes: [],
+  bankProfiles: [],
 
   clearLocal: () =>
     set({
@@ -140,6 +147,7 @@ export const useStore = create<State>()((set, get) => ({
       achatsProjet: [],
       rapports: [],
       rapportLignes: [],
+      bankProfiles: [],
     }),
 
   loadAll: async (userId) => {
@@ -159,6 +167,7 @@ export const useStore = create<State>()((set, get) => ({
       achatsProjet: [],
       rapports: [],
       rapportLignes: [],
+      bankProfiles: [],
     });
     try {
       const [
@@ -173,6 +182,7 @@ export const useStore = create<State>()((set, get) => ({
         achs,
         raps,
         rapls,
+        bps,
       ] = await Promise.all([
         supabase.from("categories").select("*").order("nom"),
         supabase.from("comptes_courants").select("*").order("nom"),
@@ -185,9 +195,10 @@ export const useStore = create<State>()((set, get) => ({
         supabase.from("achats_projet").select("*").order("date"),
         supabase.from("rapports_csv").select("*").order("dateImport", { ascending: false }),
         supabase.from("rapport_lignes").select("*").order("date", { ascending: false }),
+        supabase.from("bank_profiles").select("*").order("nom"),
       ]);
 
-      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls]
+      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls, bps]
         .map((r) => r.error)
         .filter(Boolean);
       if (errs.length) {
@@ -240,6 +251,7 @@ export const useStore = create<State>()((set, get) => ({
         achatsProjet: (achs.data ?? []).map((r: any) => strip<AchatProjet>(r)),
         rapports: (raps.data ?? []).map((r: any) => strip<RapportCSV>(r)),
         rapportLignes: (rapls.data ?? []).map((r: any) => strip<RapportLigne>(r)),
+        bankProfiles: (bps.data ?? []).map((r: any) => strip<BankProfile>(r)),
       });
     } catch (e) {
       console.error(e);
@@ -566,6 +578,36 @@ export const useStore = create<State>()((set, get) => ({
       rapports: s.rapports.filter((r) => r.id !== id),
       rapportLignes: s.rapportLignes.filter((l) => l.rapportId !== id),
     }));
+  },
+
+  // ---------- Profils CSV banques ----------
+  saveBankProfile: async (p) => {
+    const userId = await getUserId();
+    // upsert sur (user_id, fingerprint) — un format CSV donné = un seul profil par user
+    const { data, error } = await supabase
+      .from("bank_profiles")
+      .upsert(
+        { ...p, user_id: userId },
+        { onConflict: "user_id,fingerprint" }
+      )
+      .select("*")
+      .single();
+    if (error || !data) throw error ?? new Error("Sauvegarde profil échouée");
+    const profile = strip<BankProfile>(data);
+    set((s) => {
+      const existing = s.bankProfiles.findIndex((x) => x.fingerprint === profile.fingerprint);
+      const next = [...s.bankProfiles];
+      if (existing >= 0) next[existing] = profile;
+      else next.push(profile);
+      return { bankProfiles: next };
+    });
+    return profile;
+  },
+
+  deleteBankProfile: async (id) => {
+    const { error } = await supabase.from("bank_profiles").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({ bankProfiles: s.bankProfiles.filter((p) => p.id !== id) }));
   },
 }));
 

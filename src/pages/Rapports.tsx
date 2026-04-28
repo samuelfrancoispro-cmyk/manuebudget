@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from "react";
-import { Upload, Trash2, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { Upload, Trash2, FileSpreadsheet, FileText, Loader2, Settings2, Database } from "lucide-react";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import RapportAnalytique from "@/components/RapportAnalytique";
+import ImportMappingDialog from "@/components/ImportMappingDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -24,8 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/store/useStore";
-import { parseCsvBanque } from "@/lib/csvParser";
+import {
+  detectCsv,
+  parseCsvWithMapping,
+  type CsvMapping,
+  type DetectionResult,
+} from "@/lib/csvParser";
+import type { BankProfile } from "@/types";
 import { formatEUR, monthLabel } from "@/lib/utils";
+
+const CONFIDENCE_OK = 0.8;
 
 export default function Rapports() {
   const {
@@ -34,11 +43,21 @@ export default function Rapports() {
     comptesCourants,
     addRapport,
     deleteRapport,
+    bankProfiles,
+    saveBankProfile,
+    deleteBankProfile,
   } = useStore();
 
   const [importOpen, setImportOpen] = useState(false);
+  const [mappingOpen, setMappingOpen] = useState(false);
+  const [profilesOpen, setProfilesOpen] = useState(false);
   const [importing, setImporting] = useState(false);
+
+  const [detection, setDetection] = useState<DetectionResult | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingMapping, setPendingMapping] = useState<CsvMapping | null>(null);
+  const [matchedProfileName, setMatchedProfileName] = useState<string | null>(null);
+
   const [pendingNom, setPendingNom] = useState("");
   const [pendingCompteId, setPendingCompteId] = useState<string>("");
   const [pendingMois, setPendingMois] = useState("");
@@ -48,7 +67,7 @@ export default function Rapports() {
     credit: number;
   } | null>(null);
   const [pendingLignes, setPendingLignes] = useState<
-    Awaited<ReturnType<typeof parseCsvBanque>>["lignes"]
+    ReturnType<typeof parseCsvWithMapping>["lignes"]
   >([]);
 
   const [filtreCompte, setFiltreCompte] = useState<string>("all");
@@ -71,49 +90,109 @@ export default function Rapports() {
     (c) => c.id === selected?.compteCourantId
   );
 
+  function applyMappingToImportPreview(
+    file: File,
+    det: DetectionResult,
+    mapping: CsvMapping,
+    profileName: string | null
+  ) {
+    const result = parseCsvWithMapping(det.text, mapping);
+    if (result.lignes.length === 0) {
+      toast.error("Aucune ligne valide avec ce mapping", {
+        description: result.warnings.join(" • ") || "Réajuste les colonnes.",
+      });
+      return false;
+    }
+
+    let debit = 0;
+    let credit = 0;
+    for (const l of result.lignes) {
+      if (l.montant < 0) debit += -l.montant;
+      else credit += l.montant;
+    }
+
+    setPendingFile(file);
+    setPendingMapping(mapping);
+    setPendingLignes(result.lignes);
+    setPendingMois(result.moisDetecte);
+    setPendingNom(`Rapport ${monthLabel(result.moisDetecte)}`);
+    setPendingCompteId(comptesCourants[0]?.id ?? "");
+    setPendingPreview({
+      nbLignes: result.lignes.length,
+      debit,
+      credit,
+    });
+    setMatchedProfileName(profileName);
+    setImportOpen(true);
+
+    if (result.warnings.length) {
+      toast.warning("Avertissements à l'import", {
+        description: result.warnings.slice(0, 2).join(" • "),
+      });
+    }
+    return true;
+  }
+
   async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const result = await parseCsvBanque(file);
-      if (result.lignes.length === 0) {
-        toast.error("Aucune ligne valide dans ce fichier", {
-          description: result.warnings.join(" • ") || "Vérifie le format du CSV.",
-        });
-        if (fileInput.current) fileInput.current.value = "";
-        return;
-      }
-
-      let debit = 0;
-      let credit = 0;
-      for (const l of result.lignes) {
-        if (l.montant < 0) debit += -l.montant;
-        else credit += l.montant;
-      }
-
+      const det = await detectCsv(file);
+      setDetection(det);
       setPendingFile(file);
-      setPendingLignes(result.lignes);
-      setPendingMois(result.moisDetecte);
-      setPendingNom(`Rapport ${monthLabel(result.moisDetecte)}`);
-      setPendingCompteId(comptesCourants[0]?.id ?? "");
-      setPendingPreview({
-        nbLignes: result.lignes.length,
-        debit,
-        credit,
-      });
-      setImportOpen(true);
 
-      if (result.warnings.length) {
-        toast.warning("Avertissements à l'import", {
-          description: result.warnings.slice(0, 2).join(" • "),
-        });
+      // 1. Match profil sauvegardé ?
+      const profile = bankProfiles.find((p) => p.fingerprint === det.fingerprint) ?? null;
+      if (profile) {
+        const ok = applyMappingToImportPreview(file, det, profile.mapping as CsvMapping, profile.nom);
+        if (ok) {
+          toast.success(`Format reconnu : ${profile.nom}`, {
+            description: "Import via profil sauvegardé.",
+          });
+          return;
+        }
       }
+
+      // 2. Détection auto suffisante ?
+      if (det.confidence >= CONFIDENCE_OK) {
+        const ok = applyMappingToImportPreview(file, det, det.mapping, null);
+        if (ok) return;
+      }
+
+      // 3. Fallback : ouvrir le dialog de mapping manuel
+      toast.info("Format inconnu — ajuste le mapping", {
+        description: "Sauvegarde-le ensuite pour les prochains imports.",
+      });
+      setMappingOpen(true);
     } catch (err) {
       console.error(err);
       toast.error("Échec de la lecture du fichier");
     } finally {
       if (fileInput.current) fileInput.current.value = "";
     }
+  }
+
+  async function handleMappingConfirm(mapping: CsvMapping, saveAs: string | null) {
+    if (!detection || !pendingFile) return;
+    const ok = applyMappingToImportPreview(pendingFile, detection, mapping, saveAs);
+    if (!ok) return;
+
+    if (saveAs) {
+      try {
+        await saveBankProfile({
+          nom: saveAs,
+          fingerprint: detection.fingerprint,
+          mapping,
+        });
+        toast.success(`Profil "${saveAs}" sauvegardé`);
+      } catch (err: any) {
+        console.error(err);
+        toast.error("Échec sauvegarde profil", {
+          description: err?.message ?? "Vérifie le SQL Supabase (table bank_profiles).",
+        });
+      }
+    }
+    setMappingOpen(false);
   }
 
   async function confirmerImport() {
@@ -147,6 +226,11 @@ export default function Rapports() {
     }
   }
 
+  function reopenMappingFromPreview() {
+    setImportOpen(false);
+    setMappingOpen(true);
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("Supprimer définitivement ce rapport ?")) return;
     try {
@@ -162,7 +246,7 @@ export default function Rapports() {
     <>
       <PageHeader
         title="Rapports CSV"
-        description="Importe un relevé de compte CSV et explore tes dépenses : camembert, top postes, pistes d'économies."
+        description="Importe un relevé bancaire CSV (toutes banques) et explore tes dépenses : camembert, top postes, pistes d'économies."
         action={
           <div className="flex gap-2">
             <Select value={filtreCompte} onValueChange={setFiltreCompte}>
@@ -178,6 +262,10 @@ export default function Rapports() {
                 ))}
               </SelectContent>
             </Select>
+            <Button variant="outline" onClick={() => setProfilesOpen(true)} title="Profils de banque">
+              <Database className="h-4 w-4" />
+              Profils
+            </Button>
             <Button onClick={() => fileInput.current?.click()}>
               <Upload className="h-4 w-4" />
               Importer CSV
@@ -185,7 +273,7 @@ export default function Rapports() {
             <input
               ref={fileInput}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,text/plain"
               className="hidden"
               onChange={handleFileChosen}
             />
@@ -288,26 +376,51 @@ export default function Rapports() {
         </div>
       </div>
 
-      {/* Modal import */}
+      {/* Modal mapping manuel */}
+      <ImportMappingDialog
+        open={mappingOpen}
+        onOpenChange={setMappingOpen}
+        detection={detection}
+        onConfirm={handleMappingConfirm}
+        defaultProfileName={matchedProfileName ?? undefined}
+      />
+
+      {/* Modal preview + saisie nom rapport */}
       <Dialog open={importOpen} onOpenChange={(o) => !importing && setImportOpen(o)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Importer le rapport</DialogTitle>
             <DialogDescription>
-              Vérifie les infos avant enregistrement. Le rapport restera dans
-              l'historique tant que tu ne le supprimes pas.
+              Vérifie les infos avant enregistrement.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
             {pendingPreview && (
               <div className="rounded-md border bg-muted/30 p-3 text-sm">
-                <div className="font-medium">{pendingFile?.name}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-medium truncate">{pendingFile?.name}</div>
+                  {matchedProfileName && (
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      <Database className="h-2.5 w-2.5 mr-1" />
+                      {matchedProfileName}
+                    </Badge>
+                  )}
+                </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {pendingPreview.nbLignes} opérations • Débits −
                   {formatEUR(pendingPreview.debit)} • Crédits +
                   {formatEUR(pendingPreview.credit)}
                 </div>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 mt-1 text-xs"
+                  onClick={reopenMappingFromPreview}
+                >
+                  <Settings2 className="h-3 w-3 mr-1" />
+                  Ajuster le mapping
+                </Button>
               </div>
             )}
 
@@ -368,6 +481,83 @@ export default function Rapports() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Gestion des profils */}
+      <ProfilesDialog
+        open={profilesOpen}
+        onOpenChange={setProfilesOpen}
+        profiles={bankProfiles}
+        onDelete={async (id) => {
+          if (!confirm("Supprimer ce profil ?")) return;
+          try {
+            await deleteBankProfile(id);
+            toast.success("Profil supprimé");
+          } catch (err: any) {
+            toast.error("Échec suppression", { description: err?.message });
+          }
+        }}
+      />
     </>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
+function ProfilesDialog({
+  open,
+  onOpenChange,
+  profiles,
+  onDelete,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  profiles: BankProfile[];
+  onDelete: (id: string) => void | Promise<void>;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Profils de banque</DialogTitle>
+          <DialogDescription>
+            Mappings sauvegardés sur ton compte. Un CSV avec les mêmes colonnes sera reconnu automatiquement.
+          </DialogDescription>
+        </DialogHeader>
+
+        {profiles.length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            Aucun profil enregistré.
+            <br />
+            Importe un CSV et coche « Sauvegarder comme profil ».
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {profiles.map((p) => {
+              const m = p.mapping as CsvMapping;
+              return (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between rounded-md border p-3 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{p.nom}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {m.amountStrategy === "debit_credit" ? "Débit/Crédit séparés" : "Montant signé"}
+                      {" • "}
+                      {m.dateFormat}
+                      {" • "}
+                      sép. <code className="text-[10px]">{m.delimiter === "\t" ? "\\t" : m.delimiter}</code>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => onDelete(p.id)}>
+                    <Trash2 className="h-4 w-4 text-rose-600" />
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
