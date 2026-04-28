@@ -4,3 +4,10 @@ dist
 *.local
 .env
 .env.*
+
+# Fichiers bancaires / budget perso (ne pas committer)
+*.csv
+*.xls
+*.xlsx
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo

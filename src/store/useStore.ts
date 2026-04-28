@@ -10,6 +10,8 @@ import type {
   Objectif,
   Projet,
   AchatProjet,
+  RapportCSV,
+  RapportLigne,
 } from "@/types";
 
 interface State {
@@ -26,6 +28,8 @@ interface State {
   objectifs: Objectif[];
   projets: Projet[];
   achatsProjet: AchatProjet[];
+  rapports: RapportCSV[];
+  rapportLignes: RapportLigne[];
 
   loadAll: (userId: string) => Promise<void>;
   clearLocal: () => void;
@@ -67,6 +71,12 @@ interface State {
   updateAchatProjet: (id: string, a: Partial<AchatProjet>) => Promise<void>;
   deleteAchatProjet: (id: string) => Promise<void>;
   toggleAchatValide: (id: string) => Promise<void>;
+
+  addRapport: (
+    rapport: Omit<RapportCSV, "id" | "dateImport" | "totalDebit" | "totalCredit" | "nbLignes">,
+    lignes: Omit<RapportLigne, "id" | "rapportId">[]
+  ) => Promise<RapportCSV>;
+  deleteRapport: (id: string) => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -112,6 +122,8 @@ export const useStore = create<State>()((set, get) => ({
   objectifs: [],
   projets: [],
   achatsProjet: [],
+  rapports: [],
+  rapportLignes: [],
 
   clearLocal: () =>
     set({
@@ -126,6 +138,8 @@ export const useStore = create<State>()((set, get) => ({
       objectifs: [],
       projets: [],
       achatsProjet: [],
+      rapports: [],
+      rapportLignes: [],
     }),
 
   loadAll: async (userId) => {
@@ -143,6 +157,8 @@ export const useStore = create<State>()((set, get) => ({
       objectifs: [],
       projets: [],
       achatsProjet: [],
+      rapports: [],
+      rapportLignes: [],
     });
     try {
       const [
@@ -155,6 +171,8 @@ export const useStore = create<State>()((set, get) => ({
         objs,
         projs,
         achs,
+        raps,
+        rapls,
       ] = await Promise.all([
         supabase.from("categories").select("*").order("nom"),
         supabase.from("comptes_courants").select("*").order("nom"),
@@ -165,9 +183,11 @@ export const useStore = create<State>()((set, get) => ({
         supabase.from("objectifs").select("*").order("nom"),
         supabase.from("projets").select("*").order("nom"),
         supabase.from("achats_projet").select("*").order("date"),
+        supabase.from("rapports_csv").select("*").order("dateImport", { ascending: false }),
+        supabase.from("rapport_lignes").select("*").order("date", { ascending: false }),
       ]);
 
-      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs]
+      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls]
         .map((r) => r.error)
         .filter(Boolean);
       if (errs.length) {
@@ -218,6 +238,8 @@ export const useStore = create<State>()((set, get) => ({
         objectifs: (objs.data ?? []).map((r: any) => strip<Objectif>(r)),
         projets: (projs.data ?? []).map((r: any) => strip<Projet>(r)),
         achatsProjet: (achs.data ?? []).map((r: any) => strip<AchatProjet>(r)),
+        rapports: (raps.data ?? []).map((r: any) => strip<RapportCSV>(r)),
+        rapportLignes: (rapls.data ?? []).map((r: any) => strip<RapportLigne>(r)),
       });
     } catch (e) {
       console.error(e);
@@ -491,6 +513,59 @@ export const useStore = create<State>()((set, get) => ({
     const a = s.achatsProjet.find((x) => x.id === id);
     if (!a) return;
     await get().updateAchatProjet(id, { valide: !a.valide });
+  },
+
+  // ---------- Rapports CSV ----------
+  addRapport: async (rapport, lignes) => {
+    const userId = await getUserId();
+    let totalDebit = 0;
+    let totalCredit = 0;
+    for (const l of lignes) {
+      if (l.montant < 0) totalDebit += -l.montant;
+      else totalCredit += l.montant;
+    }
+    const { data: rapData, error: rapErr } = await supabase
+      .from("rapports_csv")
+      .insert({
+        ...rapport,
+        user_id: userId,
+        totalDebit,
+        totalCredit,
+        nbLignes: lignes.length,
+      })
+      .select("*")
+      .single();
+    if (rapErr || !rapData) throw rapErr ?? new Error("Création rapport échouée");
+    const newRap = strip<RapportCSV>(rapData);
+
+    if (lignes.length > 0) {
+      const inserts = lignes.map((l) => ({ ...l, rapportId: newRap.id, user_id: userId }));
+      const { data: ligData, error: ligErr } = await supabase
+        .from("rapport_lignes")
+        .insert(inserts)
+        .select("*");
+      if (ligErr) {
+        await supabase.from("rapports_csv").delete().eq("id", newRap.id);
+        throw ligErr;
+      }
+      const newLignes = (ligData ?? []).map((r: any) => strip<RapportLigne>(r));
+      set((s) => ({
+        rapports: [newRap, ...s.rapports],
+        rapportLignes: [...newLignes, ...s.rapportLignes],
+      }));
+    } else {
+      set((s) => ({ rapports: [newRap, ...s.rapports] }));
+    }
+    return newRap;
+  },
+
+  deleteRapport: async (id) => {
+    const { error } = await supabase.from("rapports_csv").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({
+      rapports: s.rapports.filter((r) => r.id !== id),
+      rapportLignes: s.rapportLignes.filter((l) => l.rapportId !== id),
+    }));
   },
 }));
 

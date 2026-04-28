@@ -92,3 +92,29 @@ export interface Projet {
   tauxAnnuel: number;
   description?: string;
 }
+
+export interface RapportCSV {
+  id: string;
+  compteCourantId?: string;
+  nom: string;
+  mois: string;
+  dateImport: string;
+  fichierNom?: string;
+  totalDebit: number;
+  totalCredit: number;
+  nbLignes: number;
+}
+
+export interface RapportLigne {
+  id: string;
+  rapportId: string;
+  date: string;
+  libelle: string;
+  libelleOperation?: string;
+  infosComplementaires?: string;
+  typeOperation?: string;
+  categorie?: string;
+  sousCategorie?: string;
+  /** Montant signé : négatif = débit, positif = crédit */
+  montant: number;
+}

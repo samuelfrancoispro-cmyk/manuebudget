@@ -8,6 +8,7 @@ import {
   Settings,
   Wallet,
   Repeat,
+  PieChart,
   Sun,
   Moon,
   Menu,
@@ -27,6 +28,7 @@ const nav = [
   { to: "/recurrents", label: "Récurrents", icon: Repeat },
   { to: "/epargne", label: "Épargne", icon: PiggyBank },
   { to: "/simulateur", label: "Simulateur", icon: Calculator },
+  { to: "/rapports", label: "Rapports CSV", icon: PieChart },
   { to: "/parametres", label: "Paramètres", icon: Settings },
   { to: "/aide", label: "Aide", icon: HelpCircle },
 ];
