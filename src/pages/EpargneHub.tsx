@@ -14,14 +14,14 @@ const TABS = ["epargne", "virements", "simulateur"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EpargneHub() {
-  const { comptes, mouvements, virementsRecurrents } = useStore();
+  const { comptes, mouvements, virementsRecurrents, actifs } = useStore();
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
   const initial: Tab = TABS.includes(raw as Tab) ? (raw as Tab) : "epargne";
 
   const total = useMemo(
-    () => totalEpargne(comptes, mouvements, virementsRecurrents),
-    [comptes, mouvements, virementsRecurrents]
+    () => totalEpargne(comptes, mouvements, virementsRecurrents, actifs),
+    [comptes, mouvements, virementsRecurrents, actifs]
   );
 
   const setTab = (v: string) => {

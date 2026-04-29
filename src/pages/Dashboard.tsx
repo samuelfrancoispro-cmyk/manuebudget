@@ -96,6 +96,7 @@ export default function Dashboard() {
     comptesCourants,
     mouvements,
     objectifs,
+    actifs,
   } = useStore();
   const [mois, setMois] = useState<string>(monthKey(new Date().toISOString()));
   const [compteId, setCompteId] = useState<string>("all");
@@ -176,7 +177,7 @@ export default function Dashboard() {
     return arr;
   }, [parCat, categories]);
 
-  const epargneTotale = totalEpargne(comptes, mouvements, virementsRecurrents);
+  const epargneTotale = totalEpargne(comptes, mouvements, virementsRecurrents, actifs);
 
   // Prévisions des 3 prochains mois (récurrentes + virements seulement)
   const previsions = useMemo(() => {

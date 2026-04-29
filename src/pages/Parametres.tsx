@@ -3,7 +3,7 @@ import { Plus, Trash2, Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/store/useStore";
 import type { Categorie, CompteCourant, TypeCompteCourant, TypeTransaction } from "@/types";
-import { formatEUR } from "@/lib/utils";
+import { formatEUR, todayISO } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -318,6 +318,7 @@ function CompteCourantForm({
   const [nom, setNom] = useState(edit?.nom ?? "");
   const [type, setType] = useState<TypeCompteCourant>(edit?.type ?? "perso");
   const [solde, setSolde] = useState(edit ? String(edit.soldeInitial) : "0");
+  const [dateReference, setDateReference] = useState(edit?.dateReference ?? todayISO());
   const [desc, setDesc] = useState(edit?.description ?? "");
 
   const handleOpenChange = (b: boolean) => {
@@ -325,6 +326,7 @@ function CompteCourantForm({
       setNom(edit?.nom ?? "");
       setType(edit?.type ?? "perso");
       setSolde(edit ? String(edit.soldeInitial) : "0");
+      setDateReference(edit?.dateReference ?? todayISO());
       setDesc(edit?.description ?? "");
     }
     onOpenChange(b);
@@ -338,6 +340,7 @@ function CompteCourantForm({
       nom: nom.trim(),
       type,
       soldeInitial: s,
+      dateReference: dateReference || undefined,
       description: desc || undefined,
     });
   };
@@ -371,7 +374,7 @@ function CompteCourantForm({
               </Select>
             </div>
             <div>
-              <Label className="mb-1.5 block">Solde initial (€)</Label>
+              <Label className="mb-1.5 block">Solde actuel (€)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -379,6 +382,18 @@ function CompteCourantForm({
                 onChange={(e) => setSolde(e.target.value)}
               />
             </div>
+          </div>
+          <div>
+            <Label className="mb-1.5 block">Date de référence</Label>
+            <Input
+              type="date"
+              value={dateReference}
+              onChange={(e) => setDateReference(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Date où ce solde est constaté. Les transactions/récurrences avant cette date sont
+              traitées comme historique (n'impactent pas le solde actuel).
+            </p>
           </div>
           <div>
             <Label className="mb-1.5 block">Description (optionnelle)</Label>

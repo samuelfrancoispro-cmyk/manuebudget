@@ -10,6 +10,13 @@ export interface CompteCourant {
   nom: string;
   type: TypeCompteCourant;
   soldeInitial: number;
+  /**
+   * Date ISO (YYYY-MM-DD) à laquelle `soldeInitial` est constaté.
+   * Les transactions/récurrences/virements antérieurs (date <= dateReference) sont
+   * traités comme historique informatif et n'impactent PAS le solde courant.
+   * Si non défini : compat — toutes les opérations impactent (comportement v1).
+   */
+  dateReference?: string;
   description?: string;
 }
 
@@ -75,6 +82,17 @@ export interface CompteEpargne {
   /** Taux annuel en %. Pour les comptes boursiers, peut être 0 (taux non pertinent). */
   tauxAnnuel: number;
   type?: TypeCompteEpargne;
+  /**
+   * Date ISO (YYYY-MM-DD) à laquelle `soldeInitial` (ou `fondEuros` + actifs) est constaté.
+   * Mouvements antérieurs = historique informatif, n'impactent PAS le solde courant.
+   * Si non défini : compat — tous les mouvements impactent.
+   */
+  dateReference?: string;
+  /**
+   * Compte boursier uniquement : cash dispo (fond en euros, partie non investie).
+   * Solde du compte boursier = `fondEuros + Σ(qte × prixActuel ?? prixAchat)` + mouvements postérieurs à dateReference.
+   */
+  fondEuros?: number;
   description?: string;
 }
 

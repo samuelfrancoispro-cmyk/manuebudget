@@ -89,8 +89,8 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
   const [compteSelActif, setCompteSelActif] = useState<string | null>(null);
 
   const total = useMemo(
-    () => totalEpargne(comptes, mouvements, virementsRecurrents),
-    [comptes, mouvements, virementsRecurrents]
+    () => totalEpargne(comptes, mouvements, virementsRecurrents, actifs),
+    [comptes, mouvements, virementsRecurrents, actifs]
   );
 
   return (
@@ -135,14 +135,17 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {comptes.map((c) => {
-                const solde = soldeCompte(c, mouvements, virementsRecurrents);
                 const actifsCpte = actifs.filter((a) => a.compteId === c.id);
                 const isBoursier = c.type === "boursier";
-                const valeurMarche = isBoursier && actifsCpte.length > 0 && actifsCpte.every((a) => a.prixActuel != null)
-                  ? actifsCpte.reduce((s, a) => s + a.quantite * (a.prixActuel ?? 0), 0)
-                  : null;
-                const plusValue = valeurMarche != null
-                  ? valeurMarche - actifsCpte.reduce((s, a) => s + a.quantite * a.prixAchat, 0)
+                const solde = soldeCompte(c, mouvements, virementsRecurrents, undefined, actifs);
+                const fondEuros = c.fondEuros ?? 0;
+                const valeurPositions = actifsCpte.reduce(
+                  (s, a) => s + a.quantite * (a.prixActuel ?? a.prixAchat),
+                  0
+                );
+                const tousAvecPrixActuel = actifsCpte.length > 0 && actifsCpte.every((a) => a.prixActuel != null);
+                const plusValue = tousAvecPrixActuel
+                  ? valeurPositions - actifsCpte.reduce((s, a) => s + a.quantite * a.prixAchat, 0)
                   : null;
                 return (
                   <Card key={c.id}>
@@ -188,11 +191,19 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                       </div>
                     </CardHeader>
                     <CardContent>
-                      {isBoursier && valeurMarche != null ? (
+                      {isBoursier ? (
                         <div className="space-y-1">
-                          <div className="text-2xl font-semibold">{formatEUR(valeurMarche)}</div>
+                          <div className="text-2xl font-semibold">{formatEUR(solde)}</div>
                           <div className="text-xs text-muted-foreground">
-                            Valeur de marché ({actifsCpte.length} position{actifsCpte.length > 1 ? "s" : ""})
+                            {actifsCpte.length > 0
+                              ? `${actifsCpte.length} position${actifsCpte.length > 1 ? "s" : ""}`
+                              : "Cash uniquement"}
+                            {fondEuros > 0 && (
+                              <> · Cash : {formatEUR(fondEuros)}</>
+                            )}
+                            {actifsCpte.length > 0 && (
+                              <> · Titres : {formatEUR(valeurPositions)}</>
+                            )}
                           </div>
                           {plusValue != null && (
                             <div className={`text-sm font-medium ${plusValue >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
@@ -296,7 +307,7 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
             <div className="grid gap-4 md:grid-cols-2">
               {objectifs.map((o) => {
                 const compte = o.compteId ? comptes.find((c) => c.id === o.compteId) : null;
-                const actuel = compte ? soldeCompte(compte, mouvements, virementsRecurrents) : 0;
+                const actuel = compte ? soldeCompte(compte, mouvements, virementsRecurrents, undefined, actifs) : 0;
                 const { pct, restant } = progressionObjectif(o.montantCible, actuel);
                 return (
                   <Card key={o.id}>
@@ -489,6 +500,10 @@ function CompteForm({
 }) {
   const [nom, setNom] = useState(edit?.nom ?? "");
   const [solde, setSolde] = useState(edit ? String(edit.soldeInitial) : "0");
+  const [fondEuros, setFondEuros] = useState(
+    edit?.fondEuros != null ? String(edit.fondEuros) : "0"
+  );
+  const [dateReference, setDateReference] = useState(edit?.dateReference ?? todayISO());
   const [type, setType] = useState<TypeCompteEpargne>(edit?.type ?? "livret");
   const [modeTaux, setModeTaux] = useState<"annuel" | "mensuel">("annuel");
   const [taux, setTaux] = useState(edit ? String(edit.tauxAnnuel) : "3");
@@ -504,15 +519,20 @@ function CompteForm({
 
   const valider = () => {
     if (!nom.trim()) return toast.error("Nom requis");
+    const isBoursier = type === "boursier";
     const s = parseFloat(solde);
-    if (isNaN(s)) return toast.error("Solde invalide");
+    if (!isBoursier && isNaN(s)) return toast.error("Solde invalide");
+    const fe = parseFloat(fondEuros);
+    if (isBoursier && isNaN(fe)) return toast.error("Fond euros invalide");
     const t = parseFloat(taux);
-    if (isNaN(t)) return toast.error("Taux invalide");
+    if (!isBoursier && isNaN(t)) return toast.error("Taux invalide");
     onSave({
       nom: nom.trim(),
-      soldeInitial: s,
-      tauxAnnuel: parseFloat(tauxAnnuelCalcule.toFixed(4)),
+      soldeInitial: isBoursier ? 0 : s,
+      tauxAnnuel: isBoursier ? 0 : parseFloat(tauxAnnuelCalcule.toFixed(4)),
       type,
+      dateReference: dateReference || undefined,
+      fondEuros: isBoursier ? fe : undefined,
       description: desc || undefined,
     });
   };
@@ -546,14 +566,42 @@ function CompteForm({
               </Select>
             </div>
           </div>
-          <div>
-            <Label className="mb-1.5 block">Solde initial (€)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={solde}
-              onChange={(e) => setSolde(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            {type === "boursier" ? (
+              <div>
+                <Label className="mb-1.5 block">Cash dispo / fond € (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={fondEuros}
+                  onChange={(e) => setFondEuros(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Liquidités non investies. Les positions s'ajoutent ensuite.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <Label className="mb-1.5 block">Solde actuel (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={solde}
+                  onChange={(e) => setSolde(e.target.value)}
+                />
+              </div>
+            )}
+            <div>
+              <Label className="mb-1.5 block">Date de référence</Label>
+              <Input
+                type="date"
+                value={dateReference}
+                onChange={(e) => setDateReference(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Date où ce solde est constaté. Avant = historique informatif.
+              </p>
+            </div>
           </div>
           {type !== "boursier" && (
             <div>

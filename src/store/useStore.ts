@@ -16,10 +16,6 @@ import type {
   VirementRecurrent,
   ActifBoursier,
 } from "@/types";
-import {
-  expandRecurrentesPourMois,
-  expandVirementsTransactionsPourMois,
-} from "@/lib/calculs";
 
 interface State {
   loaded: boolean;
@@ -399,48 +395,12 @@ export const useStore = create<State>()((set, get) => ({
     const compte = s.comptesCourants.find((c) => c.id === id);
     if (!compte) return;
     const auj = new Date().toISOString().slice(0, 10);
-    let cumul = 0;
-    // Transactions ponctuelles
-    for (const t of s.transactions) {
-      if (t.compteCourantId !== id) continue;
-      if (t.date > auj) continue;
-      cumul += t.type === "revenu" ? t.montant : -t.montant;
-    }
-    // Récurrentes échues (toutes fréquences)
-    const moisLimite = auj.slice(0, 7);
-    const moisListe: string[] = [];
-    {
-      const [y0, m0] = moisLimite.split("-").map(Number);
-      const yMin = y0 - 5;
-      let yy = yMin, mm = 1;
-      while (yy < y0 || (yy === y0 && mm <= m0)) {
-        moisListe.push(`${String(yy).padStart(4, "0")}-${String(mm).padStart(2, "0")}`);
-        mm++;
-        if (mm > 12) { mm = 1; yy++; }
-      }
-    }
-    for (const m of moisListe) {
-      const recs = expandRecurrentesPourMois(s.recurrentes, m, {
-        seulementEchues: true,
-        aujourdhui: auj,
-      });
-      for (const t of recs) {
-        if (t.compteCourantId !== id) continue;
-        cumul += t.type === "revenu" ? t.montant : -t.montant;
-      }
-      const virs = expandVirementsTransactionsPourMois(
-        s.virementsRecurrents,
-        s.comptes,
-        m,
-        { seulementEchues: true, aujourdhui: auj }
-      );
-      for (const t of virs) {
-        if (t.compteCourantId !== id) continue;
-        cumul -= t.montant;
-      }
-    }
-    const nouveauSoldeInitial = soldeActuel - cumul;
-    await get().updateCompteCourant(id, { soldeInitial: nouveauSoldeInitial });
+    // Principe simple : on fixe dateReference = aujourd'hui + soldeInitial = soldeActuel.
+    // Tout ce qui est <= aujourd'hui devient historique, tout ce qui est > impacte le solde.
+    await get().updateCompteCourant(id, {
+      soldeInitial: soldeActuel,
+      dateReference: auj,
+    });
   },
 
   // ---------- Comptes épargne ----------

@@ -7,6 +7,7 @@ import type {
   Projet,
   AchatProjet,
   VirementRecurrent,
+  ActifBoursier,
   Frequence,
 } from "@/types";
 import { monthKey } from "./utils";
@@ -321,7 +322,8 @@ export function moisDisponibles(
 
 /**
  * Cumul net (signé) des transactions ponctuelles + récurrentes + virements épargne
- * pour un compte courant, jusqu'à `jusquauDate`.
+ * pour un compte courant, sur la fenêtre `]dateReference, jusquauDate]`.
+ * Tout ce qui est antérieur ou égal à `dateReference` est ignoré (historique informatif).
  */
 export function cumulCompteCourant(
   compteId: string,
@@ -329,24 +331,30 @@ export function cumulCompteCourant(
   recurrentes: TransactionRecurrente[],
   jusquauDate: string = dateISO(),
   virements: VirementRecurrent[] = [],
-  comptesEpargne: CompteEpargne[] = []
+  comptesEpargne: CompteEpargne[] = [],
+  dateReference?: string
 ): number {
+  const dateRef = dateReference ?? "";
   let cumul = 0;
   for (const t of transactions) {
     if (t.compteCourantId !== compteId) continue;
     if (t.date > jusquauDate) continue;
+    if (dateRef && t.date <= dateRef) continue;
     cumul += t.type === "revenu" ? t.montant : -t.montant;
   }
   // Récurrentes échues
   const moisLimite = jusquauDate.slice(0, 7);
+  const moisDebutListe = dateRef ? dateRef.slice(0, 7) : null;
   const moisListe = moisJusquA(moisLimite);
   for (const m of moisListe) {
+    if (moisDebutListe && m < moisDebutListe) continue;
     const recs = expandRecurrentesPourMois(recurrentes, m, {
       seulementEchues: true,
       aujourdhui: jusquauDate,
     });
     for (const t of recs) {
       if (t.compteCourantId !== compteId) continue;
+      if (dateRef && t.date <= dateRef) continue;
       cumul += t.type === "revenu" ? t.montant : -t.montant;
     }
     const virs = expandVirementsTransactionsPourMois(virements, comptesEpargne, m, {
@@ -355,6 +363,7 @@ export function cumulCompteCourant(
     });
     for (const t of virs) {
       if (t.compteCourantId !== compteId) continue;
+      if (dateRef && t.date <= dateRef) continue;
       cumul -= t.montant; // virement = sortie
     }
   }
@@ -397,45 +406,94 @@ export function soldeCompteCourant(
 ): number {
   return (
     compte.soldeInitial +
-    cumulCompteCourant(compte.id, transactions, recurrentes, jusquauDate, virements, comptesEpargne)
+    cumulCompteCourant(
+      compte.id,
+      transactions,
+      recurrentes,
+      jusquauDate,
+      virements,
+      comptesEpargne,
+      compte.dateReference
+    )
   );
 }
 
 /**
- * Solde d'un compte épargne = solde initial + mouvements (manuels + virements auto échus).
+ * Solde d'un compte épargne.
+ *
+ * Cas standard (livret/AV/autre) :
+ *   `soldeInitial + Σ(mouvements postérieurs à dateReference) + Σ(virements auto postérieurs à dateReference)`
+ *
+ * Cas boursier (si `actifs` fournis et type === "boursier") :
+ *   `(fondEuros ?? 0) + Σ(qte × (prixActuel ?? prixAchat))` + mouvements postérieurs à dateReference (cash uniquement)
+ *   Les actifs représentent les positions actuelles → leur dateAchat n'impacte pas le solde, c'est de l'historique.
+ *
+ * Si `dateReference` non défini : compat — tous les mouvements impactent.
  */
 export function soldeCompte(
   compte: CompteEpargne,
   mouvements: MouvementEpargne[],
   virements: VirementRecurrent[] = [],
-  jusquauDate: string = dateISO()
+  jusquauDate: string = dateISO(),
+  actifs: ActifBoursier[] = []
 ): number {
-  const mvts = mouvements.filter((m) => m.compteId === compte.id);
-  let delta = mvts.reduce((acc, m) => {
+  const dateRef = compte.dateReference ?? "";
+  const isBoursier = compte.type === "boursier";
+
+  // Mouvements pertinents : > dateReference, <= jusquauDate
+  const mvtsFiltres = mouvements.filter((m) => {
+    if (m.compteId !== compte.id) return false;
+    if (m.date > jusquauDate) return false;
+    if (dateRef && m.date <= dateRef) return false;
+    return true;
+  });
+  let deltaMvts = mvtsFiltres.reduce((acc, m) => {
     if (m.type === "retrait") return acc - m.montant;
     return acc + m.montant;
   }, 0);
-  // Virements automatiques échus vers ce compte
+
+  // Virements automatiques pertinents
   const moisLimite = jusquauDate.slice(0, 7);
+  const moisDebutListe = dateRef ? dateRef.slice(0, 7) : null;
   const moisListe = moisJusquA(moisLimite);
   for (const mois of moisListe) {
+    if (moisDebutListe && mois < moisDebutListe) continue;
     const virs = expandVirementsMouvementsPourMois(virements, mois, {
       seulementEchues: true,
       aujourdhui: jusquauDate,
     });
     for (const v of virs) {
-      if (v.compteId === compte.id) delta += v.montant;
+      if (v.compteId !== compte.id) continue;
+      if (dateRef && v.date <= dateRef) continue;
+      deltaMvts += v.montant;
     }
   }
-  return compte.soldeInitial + delta;
+
+  if (isBoursier) {
+    const positions = actifs.filter((a) => a.compteId === compte.id);
+    if (positions.length > 0 || compte.fondEuros != null) {
+      const valeurPositions = positions.reduce(
+        (s, a) => s + a.quantite * (a.prixActuel ?? a.prixAchat),
+        0
+      );
+      const fond = compte.fondEuros ?? 0;
+      return fond + valeurPositions + deltaMvts;
+    }
+    // Fallback compat : pas d'actifs, pas de fondEuros → soldeInitial classique
+  }
+  return compte.soldeInitial + deltaMvts;
 }
 
 export function totalEpargne(
   comptes: CompteEpargne[],
   mouvements: MouvementEpargne[],
-  virements: VirementRecurrent[] = []
+  virements: VirementRecurrent[] = [],
+  actifs: ActifBoursier[] = []
 ): number {
-  return comptes.reduce((sum, c) => sum + soldeCompte(c, mouvements, virements), 0);
+  return comptes.reduce(
+    (sum, c) => sum + soldeCompte(c, mouvements, virements, undefined, actifs),
+    0
+  );
 }
 
 export interface SimulationResultat {
