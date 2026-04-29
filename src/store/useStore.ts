@@ -14,6 +14,7 @@ import type {
   RapportLigne,
   BankProfile,
   VirementRecurrent,
+  ActifBoursier,
 } from "@/types";
 import {
   expandRecurrentesPourMois,
@@ -38,6 +39,7 @@ interface State {
   rapportLignes: RapportLigne[];
   bankProfiles: BankProfile[];
   virementsRecurrents: VirementRecurrent[];
+  actifs: ActifBoursier[];
 
   loadAll: (userId: string) => Promise<void>;
   clearLocal: () => void;
@@ -93,6 +95,10 @@ interface State {
   addVirementRecurrent: (v: Omit<VirementRecurrent, "id">) => Promise<void>;
   updateVirementRecurrent: (id: string, v: Partial<VirementRecurrent>) => Promise<void>;
   deleteVirementRecurrent: (id: string) => Promise<void>;
+
+  addActif: (a: Omit<ActifBoursier, "id">) => Promise<void>;
+  updateActif: (id: string, a: Partial<ActifBoursier>) => Promise<void>;
+  deleteActif: (id: string) => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -142,6 +148,7 @@ export const useStore = create<State>()((set, get) => ({
   rapportLignes: [],
   bankProfiles: [],
   virementsRecurrents: [],
+  actifs: [],
 
   clearLocal: () =>
     set({
@@ -160,6 +167,7 @@ export const useStore = create<State>()((set, get) => ({
       rapportLignes: [],
       bankProfiles: [],
       virementsRecurrents: [],
+      actifs: [],
     }),
 
   loadAll: async (userId) => {
@@ -181,6 +189,7 @@ export const useStore = create<State>()((set, get) => ({
       rapportLignes: [],
       bankProfiles: [],
       virementsRecurrents: [],
+      actifs: [],
     });
     try {
       const [
@@ -197,6 +206,7 @@ export const useStore = create<State>()((set, get) => ({
         rapls,
         bps,
         virs,
+        acts,
       ] = await Promise.all([
         supabase.from("categories").select("*").order("nom"),
         supabase.from("comptes_courants").select("*").order("nom"),
@@ -211,9 +221,10 @@ export const useStore = create<State>()((set, get) => ({
         supabase.from("rapport_lignes").select("*").order("date", { ascending: false }),
         supabase.from("bank_profiles").select("*").order("nom"),
         supabase.from("virements_recurrents").select("*").order("libelle"),
+        supabase.from("actifs_boursier").select("*").order("nom"),
       ]);
 
-      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls, bps, virs]
+      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls, bps, virs, acts]
         .map((r) => r.error)
         .filter(Boolean);
       if (errs.length) {
@@ -268,6 +279,7 @@ export const useStore = create<State>()((set, get) => ({
         rapportLignes: (rapls.data ?? []).map((r: any) => strip<RapportLigne>(r)),
         bankProfiles: (bps.data ?? []).map((r: any) => strip<BankProfile>(r)),
         virementsRecurrents: (virs.data ?? []).map((r: any) => strip<VirementRecurrent>(r)),
+        actifs: (acts.data ?? []).map((r: any) => strip<ActifBoursier>(r)),
       });
     } catch (e) {
       console.error(e);
@@ -452,12 +464,14 @@ export const useStore = create<State>()((set, get) => ({
   deleteCompte: async (id) => {
     const { error } = await supabase.from("comptes_epargne").delete().eq("id", id);
     if (error) throw error;
-    // Supprime virements automatiques visant ce compte épargne
+    // Supprime virements automatiques visant ce compte épargne + actifs boursiers liés
     await supabase.from("virements_recurrents").delete().eq("compteEpargneId", id);
+    await supabase.from("actifs_boursier").delete().eq("compteId", id);
     set((s) => ({
       comptes: s.comptes.filter((x) => x.id !== id),
       mouvements: s.mouvements.filter((m) => m.compteId !== id),
       virementsRecurrents: s.virementsRecurrents.filter((v) => v.compteEpargneId !== id),
+      actifs: s.actifs.filter((a) => a.compteId !== id),
     }));
   },
 
@@ -677,6 +691,30 @@ export const useStore = create<State>()((set, get) => ({
     set((s) => ({
       virementsRecurrents: s.virementsRecurrents.filter((x) => x.id !== id),
     }));
+  },
+
+  // ---------- Actifs boursiers ----------
+  addActif: async (a) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from("actifs_boursier")
+      .insert({ ...a, user_id: userId })
+      .select("*")
+      .single();
+    if (error || !data) throw error;
+    set((s) => ({ actifs: [...s.actifs, strip<ActifBoursier>(data)] }));
+  },
+  updateActif: async (id, a) => {
+    const { error } = await supabase.from("actifs_boursier").update(a).eq("id", id);
+    if (error) throw error;
+    set((s) => ({
+      actifs: s.actifs.map((x) => (x.id === id ? { ...x, ...a } : x)),
+    }));
+  },
+  deleteActif: async (id) => {
+    const { error } = await supabase.from("actifs_boursier").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({ actifs: s.actifs.filter((x) => x.id !== id) }));
   },
 }));
 

@@ -241,11 +241,13 @@ export function transactionsEffectivesMois(
   mois: string,
   compteCourantId?: string,
   virements: VirementRecurrent[] = [],
-  comptesEpargne: CompteEpargne[] = []
+  comptesEpargne: CompteEpargne[] = [],
+  options?: { seulementEchues?: boolean }
 ): Transaction[] {
   const ponctuelles = transactions.filter((t) => monthKey(t.date) === mois);
-  const recs = expandRecurrentesPourMois(recurrentes, mois);
-  const virs = expandVirementsTransactionsPourMois(virements, comptesEpargne, mois);
+  const expandOpts = options?.seulementEchues ? { seulementEchues: true } : undefined;
+  const recs = expandRecurrentesPourMois(recurrentes, mois, expandOpts);
+  const virs = expandVirementsTransactionsPourMois(virements, comptesEpargne, mois, expandOpts);
   const all = [...ponctuelles, ...recs, ...virs];
   return compteCourantId ? all.filter((t) => t.compteCourantId === compteCourantId) : all;
 }
@@ -256,23 +258,35 @@ export function totauxMois(
   recurrentes: TransactionRecurrente[] = [],
   compteCourantId?: string,
   virements: VirementRecurrent[] = [],
-  comptesEpargne: CompteEpargne[] = []
+  comptesEpargne: CompteEpargne[] = [],
+  options?: { seulementEchues?: boolean }
 ) {
   const filtres = transactionsEffectivesMois(
-    transactions,
-    recurrentes,
-    mois,
-    compteCourantId,
-    virements,
-    comptesEpargne
+    transactions, recurrentes, mois, compteCourantId, virements, comptesEpargne, options
   );
-  const revenus = filtres
-    .filter((t) => t.type === "revenu")
-    .reduce((sum, t) => sum + t.montant, 0);
-  const depenses = filtres
-    .filter((t) => t.type === "depense")
-    .reduce((sum, t) => sum + t.montant, 0);
+  const revenus = filtres.filter((t) => t.type === "revenu").reduce((sum, t) => sum + t.montant, 0);
+  const depenses = filtres.filter((t) => t.type === "depense").reduce((sum, t) => sum + t.montant, 0);
   return { revenus, depenses, solde: revenus - depenses, count: filtres.length };
+}
+
+/**
+ * Totaux prévisionnels d'un mois = récurrentes + virements uniquement (mois complet, sans ponctuelles).
+ * Sert à montrer "ce qui était prévu" indépendamment des transactions exceptionnelles.
+ */
+export function totauxPrevisionnels(
+  recurrentes: TransactionRecurrente[],
+  mois: string,
+  compteCourantId?: string,
+  virements: VirementRecurrent[] = [],
+  comptesEpargne: CompteEpargne[] = []
+) {
+  const recs = expandRecurrentesPourMois(recurrentes, mois);
+  const virs = expandVirementsTransactionsPourMois(virements, comptesEpargne, mois);
+  let all = [...recs, ...virs];
+  if (compteCourantId) all = all.filter((t) => t.compteCourantId === compteCourantId);
+  const revenus = all.filter((t) => t.type === "revenu").reduce((sum, t) => sum + t.montant, 0);
+  const depenses = all.filter((t) => t.type === "depense").reduce((sum, t) => sum + t.montant, 0);
+  return { revenus, depenses, solde: revenus - depenses };
 }
 
 export function depensesParCategorie(

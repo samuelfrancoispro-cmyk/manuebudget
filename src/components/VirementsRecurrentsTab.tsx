@@ -177,6 +177,7 @@ export default function VirementsRecurrentsTab() {
       </Card>
 
       <VirementForm
+        key={edit?.id ?? "new"}
         open={open}
         onOpenChange={setOpen}
         edit={edit}

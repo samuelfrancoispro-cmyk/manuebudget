@@ -66,11 +66,34 @@ export interface TransactionRecurrente {
   description?: string;
 }
 
+export type TypeCompteEpargne = "livret" | "assurance-vie" | "boursier" | "autre";
+
 export interface CompteEpargne {
   id: string;
   nom: string;
   soldeInitial: number;
+  /** Taux annuel en %. Pour les comptes boursiers, peut être 0 (taux non pertinent). */
   tauxAnnuel: number;
+  type?: TypeCompteEpargne;
+  description?: string;
+}
+
+/**
+ * Position dans un compte boursier (action, ETF, obligation…).
+ * Le solde du compte est recalculé comme Σ(quantite × prixActuel) si tous les actifs ont un prixActuel.
+ */
+export interface ActifBoursier {
+  id: string;
+  compteId: string;
+  nom: string;
+  /** Code ISIN optionnel (ex : FR0010315770) */
+  isin?: string;
+  quantite: number;
+  prixAchat: number;
+  dateAchat: string;
+  /** Prix actuel unitaire saisi manuellement */
+  prixActuel?: number;
+  dateMAJ?: string;
   description?: string;
 }
 

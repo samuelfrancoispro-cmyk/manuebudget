@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { useStore } from "@/store/useStore";
 import {
   totauxMois,
+  totauxPrevisionnels,
   depensesParCategorie,
   moisDisponibles,
   totalEpargne,
@@ -107,24 +108,23 @@ export default function Dashboard() {
 
   const compteFiltre = compteId === "all" ? undefined : compteId;
 
+  // Prévisionnel : récurrents seuls, mois complet (indépendant des ponctuelles)
+  const totauxPrev = useMemo(
+    () => totauxPrevisionnels(recurrentes, mois, compteFiltre, virementsRecurrents, comptes),
+    [recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
+  );
+  // Réel : récurrents échus + ponctuelles saisies
   const totaux = useMemo(
-    () => totauxMois(transactions, mois, recurrentes, compteFiltre, virementsRecurrents, comptes),
+    () => totauxMois(transactions, mois, recurrentes, compteFiltre, virementsRecurrents, comptes, { seulementEchues: true }),
     [transactions, recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
   );
   const totauxPrec = useMemo(
-    () =>
-      totauxMois(
-        transactions,
-        moisPrec(mois),
-        recurrentes,
-        compteFiltre,
-        virementsRecurrents,
-        comptes
-      ),
+    () => totauxMois(transactions, moisPrec(mois), recurrentes, compteFiltre, virementsRecurrents, comptes),
     [transactions, recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
   );
 
-  const tauxEpargne = totaux.revenus > 0 ? (totaux.solde / totaux.revenus) * 100 : 0;
+  const tauxEpargneReel = totaux.revenus > 0 ? (totaux.solde / totaux.revenus) * 100 : 0;
+  const tauxEpargnePrev = totauxPrev.revenus > 0 ? (totauxPrev.solde / totauxPrev.revenus) * 100 : 0;
 
   const soldesComptes = useMemo(() => {
     return comptesCourants.map((c) => ({
@@ -332,28 +332,27 @@ export default function Dashboard() {
         }
       />
 
+      {/* Bloc prévisionnel */}
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Prévisionnel — récurrents du mois
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-          titre="Revenus du mois"
-          valeur={formatEUR(totaux.revenus)}
-          comparaison={delta(totaux.revenus, totauxPrec.revenus)}
-          onClick={() => navigate("/argent?tab=transactions")}
+          titre="Revenus prévus"
+          valeur={formatEUR(totauxPrev.revenus)}
         />
         <Kpi
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
-          titre="Dépenses du mois"
-          valeur={formatEUR(totaux.depenses)}
-          comparaison={delta(totaux.depenses, totauxPrec.depenses, true)}
-          onClick={() => navigate("/argent?tab=transactions")}
+          titre="Dépenses prévues"
+          valeur={formatEUR(totauxPrev.depenses)}
         />
         <Kpi
           icon={<Coins className="h-4 w-4" />}
-          titre="Reste à vivre"
-          valeur={formatEUR(totaux.solde)}
-          accent={totaux.solde >= 0 ? "positif" : "negatif"}
-          extra={totaux.revenus > 0 ? `Taux d'épargne : ${tauxEpargne.toFixed(1)}%` : undefined}
-          comparaison={delta(totaux.solde, totauxPrec.solde)}
+          titre="Reste à vivre prévu"
+          valeur={formatEUR(totauxPrev.solde)}
+          accent={totauxPrev.solde >= 0 ? "positif" : "negatif"}
+          extra={totauxPrev.revenus > 0 ? `Taux d'épargne prévu : ${tauxEpargnePrev.toFixed(1)}%` : undefined}
         />
         <Kpi
           icon={<Wallet className="h-4 w-4" />}
@@ -362,10 +361,39 @@ export default function Dashboard() {
           accent={soldeCompteSelection >= 0 ? "positif" : "negatif"}
           extra={
             compteFiltre
-              ? "Solde cumulé du compte"
+              ? "Solde cumulé"
               : `${comptesCourants.length} compte${comptesCourants.length > 1 ? "s" : ""} courant${comptesCourants.length > 1 ? "s" : ""}`
           }
           onClick={() => navigate("/argent?tab=comptes")}
+        />
+      </div>
+
+      {/* Bloc réel */}
+      <div className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Réel — récurrents échus + transactions exceptionnelles
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
+          titre="Rentrées réelles"
+          valeur={formatEUR(totaux.revenus)}
+          comparaison={delta(totaux.revenus, totauxPrec.revenus)}
+          onClick={() => navigate("/argent?tab=transactions")}
+        />
+        <Kpi
+          icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
+          titre="Dépenses réelles"
+          valeur={formatEUR(totaux.depenses)}
+          comparaison={delta(totaux.depenses, totauxPrec.depenses, true)}
+          onClick={() => navigate("/argent?tab=transactions")}
+        />
+        <Kpi
+          icon={<Coins className="h-4 w-4" />}
+          titre="Reste à vivre réel"
+          valeur={formatEUR(totaux.solde)}
+          accent={totaux.solde >= 0 ? "positif" : "negatif"}
+          extra={totaux.revenus > 0 ? `Taux d'épargne réel : ${tauxEpargneReel.toFixed(1)}%` : undefined}
+          comparaison={delta(totaux.solde, totauxPrec.solde)}
         />
       </div>
 

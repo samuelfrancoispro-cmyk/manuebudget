@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Repeat, CalendarClock } from "lucide-react";
+import { Plus, Pencil, Trash2, Repeat, CalendarClock, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/store/useStore";
 import type { TransactionRecurrente, TypeTransaction, Frequence } from "@/types";
 import { formatEUR, formatDate, monthKey, todayISO } from "@/lib/utils";
 import {
   expandRecurrentesPourMois,
+  expandVirementsTransactionsPourMois,
   labelFrequence,
   prochaineOccurrence,
 } from "@/lib/calculs";
@@ -60,6 +61,8 @@ function dateFinOf(r: TransactionRecurrente): string | null {
 export default function RecurrentsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const {
     recurrentes,
+    virementsRecurrents,
+    comptes,
     categories,
     comptesCourants,
     addRecurrente,
@@ -72,7 +75,9 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
 
   const totalMoisCourant = useMemo(() => {
     const moisCourant = monthKey(new Date().toISOString());
-    const all = expandRecurrentesPourMois(recurrentes, moisCourant);
+    const recs = expandRecurrentesPourMois(recurrentes, moisCourant);
+    const virs = expandVirementsTransactionsPourMois(virementsRecurrents, comptes, moisCourant);
+    const all = [...recs, ...virs];
     let revenus = 0;
     let depenses = 0;
     for (const t of all) {
@@ -80,7 +85,7 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
       else depenses += t.montant;
     }
     return { revenus, depenses, solde: revenus - depenses };
-  }, [recurrentes]);
+  }, [recurrentes, virementsRecurrents, comptes]);
 
   return (
     <>
@@ -226,6 +231,43 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
                     </TableRow>
                   );
                 })}
+                {/* Virements automatiques en lecture seule */}
+                {virementsRecurrents.map((v) => {
+                  const cc = comptesCourants.find((c) => c.id === v.compteCourantId);
+                  const ce = comptes.find((c) => c.id === v.compteEpargneId);
+                  const proch = prochaineOccurrence(v.dateDebut, v.dateFin ?? null, v.frequence, v.intervalle);
+                  return (
+                    <TableRow key={`vir-${v.id}`} className="bg-violet-50/40 dark:bg-violet-950/20">
+                      <TableCell className="pl-4 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <ArrowRightLeft className="h-3.5 w-3.5 text-violet-500" />
+                          {v.libelle}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="border-violet-300 text-violet-700 dark:text-violet-400">
+                          Virement épargne
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{cc?.nom ?? "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        → {ce?.nom ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {labelFrequence(v.frequence, v.intervalle)}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {proch ? formatDate(proch) : "Terminé"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-violet-600">
+                        − {formatEUR(v.montant)}
+                      </TableCell>
+                      <TableCell className="pr-4 text-right">
+                        <span className="text-xs text-muted-foreground italic">auto</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -233,6 +275,7 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
       </Card>
 
       <RecurrentForm
+        key={edit?.id ?? "new"}
         open={open}
         onOpenChange={setOpen}
         edit={edit}
