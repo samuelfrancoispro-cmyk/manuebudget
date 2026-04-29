@@ -2,6 +2,9 @@ export type TypeTransaction = "revenu" | "depense";
 
 export type TypeCompteCourant = "perso" | "joint";
 
+/** Période d'une récurrence (jour, semaine, mois, année). */
+export type Frequence = "jour" | "semaine" | "mois" | "annee";
+
 export interface CompteCourant {
   id: string;
   nom: string;
@@ -27,6 +30,8 @@ export interface Transaction {
   description?: string;
   /** Marqueur d'origine récurrente (ne pas modifier en UI listing) */
   recurrenteId?: string;
+  /** Marqueur d'origine virement épargne (transaction virtuelle, non éditable) */
+  virementEpargneId?: string;
 }
 
 export interface TransactionRecurrente {
@@ -36,11 +41,27 @@ export interface TransactionRecurrente {
   montant: number;
   categorieId: string;
   compteCourantId?: string;
-  /** Jour du mois où la transaction tombe (1-28) */
-  jourMois: number;
-  /** Mois ISO de début (YYYY-MM) */
-  moisDebut: string;
-  /** Mois ISO de fin optionnel (YYYY-MM) */
+  /**
+   * Fréquence de la récurrence. Si absente, l'app considère "mois" (compat v2).
+   */
+  frequence?: Frequence;
+  /**
+   * Tous les N période(s). Défaut 1.
+   * Ex: frequence="mois" + intervalle=2 → tous les 2 mois.
+   */
+  intervalle?: number;
+  /**
+   * Date ISO de la première occurrence (YYYY-MM-DD). Format unique v3.
+   * Si absente, l'app reconstruit depuis moisDebut + jourMois (compat v2).
+   */
+  dateDebut?: string;
+  /** Date ISO de fin (incluse) optionnelle (YYYY-MM-DD). */
+  dateFin?: string;
+  /** @deprecated v2 — utiliser dateDebut. Conservé pour compat. */
+  jourMois?: number;
+  /** @deprecated v2 — utiliser dateDebut. */
+  moisDebut?: string;
+  /** @deprecated v2 — utiliser dateFin. */
   moisFin?: string;
   description?: string;
 }
@@ -59,6 +80,30 @@ export interface MouvementEpargne {
   date: string;
   montant: number;
   type: "versement" | "retrait" | "interet";
+  description?: string;
+  /** Marqueur d'origine virement récurrent (mouvement virtuel, non éditable) */
+  virementEpargneId?: string;
+}
+
+/**
+ * Virement automatique d'un compte courant vers un compte épargne, à fréquence libre.
+ * Génère à la volée :
+ *  - une Transaction virtuelle de dépense sur le compte courant
+ *  - un MouvementEpargne virtuel de versement sur le compte épargne
+ * Pas de stockage des occurrences en DB (cohérent avec récurrentes).
+ */
+export interface VirementRecurrent {
+  id: string;
+  libelle: string;
+  compteCourantId: string;
+  compteEpargneId: string;
+  montant: number;
+  frequence: Frequence;
+  intervalle: number;
+  /** Date ISO première occurrence (YYYY-MM-DD). */
+  dateDebut: string;
+  /** Date ISO de fin (incluse) optionnelle. */
+  dateFin?: string;
   description?: string;
 }
 

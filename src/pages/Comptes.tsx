@@ -20,8 +20,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export default function ComptesPage() {
-  const { comptesCourants, transactions, recurrentes, setSoldeActuelCompte } = useStore();
+export default function ComptesPage({ embedded = false }: { embedded?: boolean } = {}) {
+  const {
+    comptesCourants,
+    transactions,
+    recurrentes,
+    virementsRecurrents,
+    comptes,
+    setSoldeActuelCompte,
+  } = useStore();
   const [editCompte, setEditCompte] = useState<CompteCourant | null>(null);
   const [soldeInput, setSoldeInput] = useState("");
 
@@ -29,11 +36,11 @@ export default function ComptesPage() {
 
   const data = useMemo(() => {
     return comptesCourants.map((c) => {
-      const solde = soldeCompteCourant(c, transactions, recurrentes);
-      const t = totauxMois(transactions, moisCourant, recurrentes, c.id);
+      const solde = soldeCompteCourant(c, transactions, recurrentes, undefined, virementsRecurrents, comptes);
+      const t = totauxMois(transactions, moisCourant, recurrentes, c.id, virementsRecurrents, comptes);
       return { compte: c, solde, totaux: t };
     });
-  }, [comptesCourants, transactions, recurrentes, moisCourant]);
+  }, [comptesCourants, transactions, recurrentes, virementsRecurrents, comptes, moisCourant]);
 
   const totalAll = data.reduce((s, x) => s + x.solde, 0);
 
@@ -54,10 +61,12 @@ export default function ComptesPage() {
 
   return (
     <>
-      <PageHeader
-        title="Mes comptes"
-        description="Saisis le solde réel de chaque compte : tout est recalculé automatiquement."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Mes comptes"
+          description="Saisis le solde réel de chaque compte : tout est recalculé automatiquement."
+        />
+      )}
 
       <Card className="mb-4">
         <CardContent className="flex items-center justify-between p-4">

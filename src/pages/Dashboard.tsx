@@ -1,16 +1,52 @@
 import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, Coins } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  PiggyBank,
+  Coins,
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarClock,
+  Repeat,
+  ArrowRightLeft,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RTooltip,
+  CartesianGrid,
+} from "recharts";
+import { useNavigate } from "react-router-dom";
 import { useStore } from "@/store/useStore";
 import {
   totauxMois,
   depensesParCategorie,
   moisDisponibles,
   totalEpargne,
+  soldeCompte as soldeCompteEpargne,
   soldeCompteCourant,
+  evolutionSoldeCompteCourant,
+  expandRecurrentesPourMois,
+  expandVirementsTransactionsPourMois,
+  prochaineOccurrence,
+  labelFrequence,
 } from "@/lib/calculs";
+import type { TransactionRecurrente, VirementRecurrent, CompteEpargne } from "@/types";
 import { formatEUR, monthKey, monthLabel, formatDate } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -29,10 +65,31 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+function moisPrec(mois: string, n: number = 1): string {
+  const [y, m] = mois.split("-").map(Number);
+  let mm = m - n;
+  let yy = y;
+  while (mm < 1) {
+    mm += 12;
+    yy--;
+  }
+  while (mm > 12) {
+    mm -= 12;
+    yy++;
+  }
+  return `${yy.toString().padStart(4, "0")}-${String(mm).padStart(2, "0")}`;
+}
+
+function moisSuiv(mois: string, n: number = 1): string {
+  return moisPrec(mois, -n);
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate();
   const {
     transactions,
     recurrentes,
+    virementsRecurrents,
     categories,
     comptes,
     comptesCourants,
@@ -43,25 +100,45 @@ export default function Dashboard() {
   const [compteId, setCompteId] = useState<string>("all");
 
   const moisListe = useMemo(() => {
-    const dispos = moisDisponibles(transactions, recurrentes);
+    const dispos = moisDisponibles(transactions, recurrentes, virementsRecurrents);
     if (!dispos.includes(mois)) dispos.unshift(mois);
     return dispos;
-  }, [transactions, recurrentes, mois]);
+  }, [transactions, recurrentes, virementsRecurrents, mois]);
 
   const compteFiltre = compteId === "all" ? undefined : compteId;
 
   const totaux = useMemo(
-    () => totauxMois(transactions, mois, recurrentes, compteFiltre),
-    [transactions, recurrentes, mois, compteFiltre]
+    () => totauxMois(transactions, mois, recurrentes, compteFiltre, virementsRecurrents, comptes),
+    [transactions, recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
   );
+  const totauxPrec = useMemo(
+    () =>
+      totauxMois(
+        transactions,
+        moisPrec(mois),
+        recurrentes,
+        compteFiltre,
+        virementsRecurrents,
+        comptes
+      ),
+    [transactions, recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
+  );
+
   const tauxEpargne = totaux.revenus > 0 ? (totaux.solde / totaux.revenus) * 100 : 0;
 
   const soldesComptes = useMemo(() => {
     return comptesCourants.map((c) => ({
       compte: c,
-      solde: soldeCompteCourant(c, transactions, recurrentes, mois),
+      solde: soldeCompteCourant(
+        c,
+        transactions,
+        recurrentes,
+        undefined,
+        virementsRecurrents,
+        comptes
+      ),
     }));
-  }, [comptesCourants, transactions, recurrentes, mois]);
+  }, [comptesCourants, transactions, recurrentes, virementsRecurrents, comptes]);
 
   const soldeCompteSelection = useMemo(() => {
     if (compteFiltre) {
@@ -72,11 +149,22 @@ export default function Dashboard() {
   }, [soldesComptes, compteFiltre]);
 
   const parCat = useMemo(
-    () => depensesParCategorie(transactions, mois, recurrentes, compteFiltre),
-    [transactions, recurrentes, mois, compteFiltre]
+    () =>
+      depensesParCategorie(
+        transactions,
+        mois,
+        recurrentes,
+        compteFiltre,
+        virementsRecurrents,
+        comptes
+      ),
+    [transactions, recurrentes, mois, compteFiltre, virementsRecurrents, comptes]
   );
   const repartition = useMemo(() => {
     const arr = Array.from(parCat.entries()).map(([catId, montant]) => {
+      if (catId === "_virement") {
+        return { nom: "Virements épargne", couleur: "#8b5cf6", montant };
+      }
       const cat = categories.find((c) => c.id === catId);
       return {
         nom: cat?.nom ?? "Inconnu",
@@ -88,15 +176,124 @@ export default function Dashboard() {
     return arr;
   }, [parCat, categories]);
 
-  const epargneTotale = totalEpargne(comptes, mouvements);
+  const epargneTotale = totalEpargne(comptes, mouvements, virementsRecurrents);
+
+  // Prévisions des 3 prochains mois (récurrentes + virements seulement)
+  const previsions = useMemo(() => {
+    return [1, 2, 3].map((n) => {
+      const m = moisSuiv(mois, n);
+      const recs = expandRecurrentesPourMois(recurrentes, m);
+      const virs = expandVirementsTransactionsPourMois(virementsRecurrents, comptes, m);
+      const recsF = compteFiltre ? recs.filter((t) => t.compteCourantId === compteFiltre) : recs;
+      const virsF = compteFiltre ? virs.filter((t) => t.compteCourantId === compteFiltre) : virs;
+      const all = [...recsF, ...virsF];
+      const revenus = all.filter((t) => t.type === "revenu").reduce((s, t) => s + t.montant, 0);
+      const depenses = all.filter((t) => t.type === "depense").reduce((s, t) => s + t.montant, 0);
+      return { mois: m, label: monthLabel(m), revenus, depenses, solde: revenus - depenses };
+    });
+  }, [recurrentes, virementsRecurrents, comptes, mois, compteFiltre]);
+
+  // Évolution sparkline 6 mois passés (par compte sélectionné, ou agrégé)
+  const evolution = useMemo(() => {
+    const moisDeb = moisPrec(mois, 5);
+    if (compteFiltre) {
+      const c = comptesCourants.find((x) => x.id === compteFiltre);
+      if (!c) return [];
+      return evolutionSoldeCompteCourant(
+        c,
+        transactions,
+        recurrentes,
+        virementsRecurrents,
+        comptes,
+        moisDeb,
+        mois
+      );
+    }
+    // agrégé tous comptes
+    const points: Array<{ mois: string; solde: number }> = [];
+    if (comptesCourants.length === 0) return points;
+    const series = comptesCourants.map((c) =>
+      evolutionSoldeCompteCourant(
+        c,
+        transactions,
+        recurrentes,
+        virementsRecurrents,
+        comptes,
+        moisDeb,
+        mois
+      )
+    );
+    const len = series[0]?.length ?? 0;
+    for (let i = 0; i < len; i++) {
+      points.push({
+        mois: series[0][i].mois,
+        solde: series.reduce((s, sr) => s + (sr[i]?.solde ?? 0), 0),
+      });
+    }
+    return points;
+  }, [
+    comptesCourants,
+    compteFiltre,
+    transactions,
+    recurrentes,
+    virementsRecurrents,
+    comptes,
+    mois,
+  ]);
+
+  // 5 prochaines occurrences (récurrentes + virements) à venir
+  const prochaines = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    type Item = {
+      key: string;
+      date: string;
+      libelle: string;
+      type: "depense" | "revenu" | "virement";
+      montant: number;
+      compte?: string;
+    };
+    const items: Item[] = [];
+    for (const r of recurrentes as TransactionRecurrente[]) {
+      const debut = r.dateDebut ?? (r.moisDebut ? `${r.moisDebut}-01` : null);
+      if (!debut) continue;
+      const fin = r.dateFin ?? (r.moisFin ? `${r.moisFin}-28` : null);
+      const freq = r.frequence ?? "mois";
+      const inter = r.intervalle ?? 1;
+      const next = prochaineOccurrence(debut, fin, freq, inter, today);
+      if (!next) continue;
+      const cc = comptesCourants.find((c) => c.id === r.compteCourantId);
+      items.push({
+        key: `r-${r.id}`,
+        date: next,
+        libelle: r.libelle,
+        type: r.type,
+        montant: r.montant,
+        compte: cc?.nom,
+      });
+    }
+    for (const v of virementsRecurrents as VirementRecurrent[]) {
+      const next = prochaineOccurrence(v.dateDebut, v.dateFin ?? null, v.frequence, v.intervalle, today);
+      if (!next) continue;
+      const cc = comptesCourants.find((c) => c.id === v.compteCourantId);
+      const ce = (comptes as CompteEpargne[]).find((c) => c.id === v.compteEpargneId);
+      items.push({
+        key: `v-${v.id}`,
+        date: next,
+        libelle: `${v.libelle} → ${ce?.nom ?? "épargne"}`,
+        type: "virement",
+        montant: v.montant,
+        compte: cc?.nom,
+      });
+    }
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    return items.slice(0, 5);
+  }, [recurrentes, virementsRecurrents, comptesCourants, comptes]);
 
   const dernieres = useMemo(() => {
     const ponct = transactions
       .filter((t) => monthKey(t.date) === mois)
       .filter((t) => !compteFiltre || t.compteCourantId === compteFiltre);
-    return [...ponct]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 5);
+    return [...ponct].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
   }, [transactions, mois, compteFiltre]);
 
   return (
@@ -105,7 +302,7 @@ export default function Dashboard() {
         title="Tableau de bord"
         description="Vue d'ensemble de tes finances mensuelles."
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={compteId} onValueChange={setCompteId}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
@@ -140,20 +337,23 @@ export default function Dashboard() {
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
           titre="Revenus du mois"
           valeur={formatEUR(totaux.revenus)}
+          comparaison={delta(totaux.revenus, totauxPrec.revenus)}
+          onClick={() => navigate("/argent?tab=transactions")}
         />
         <Kpi
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
           titre="Dépenses du mois"
           valeur={formatEUR(totaux.depenses)}
+          comparaison={delta(totaux.depenses, totauxPrec.depenses, true)}
+          onClick={() => navigate("/argent?tab=transactions")}
         />
         <Kpi
           icon={<Coins className="h-4 w-4" />}
           titre="Reste à vivre"
           valeur={formatEUR(totaux.solde)}
           accent={totaux.solde >= 0 ? "positif" : "negatif"}
-          extra={
-            totaux.revenus > 0 ? `Taux d'épargne : ${tauxEpargne.toFixed(1)}%` : undefined
-          }
+          extra={totaux.revenus > 0 ? `Taux d'épargne : ${tauxEpargne.toFixed(1)}%` : undefined}
+          comparaison={delta(totaux.solde, totauxPrec.solde)}
         />
         <Kpi
           icon={<Wallet className="h-4 w-4" />}
@@ -165,23 +365,71 @@ export default function Dashboard() {
               ? "Solde cumulé du compte"
               : `${comptesCourants.length} compte${comptesCourants.length > 1 ? "s" : ""} courant${comptesCourants.length > 1 ? "s" : ""}`
           }
+          onClick={() => navigate("/argent?tab=comptes")}
         />
       </div>
+
+      {/* Sparkline solde 6 mois */}
+      {evolution.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Évolution du solde — 6 mois</CardTitle>
+                <CardDescription>
+                  {compteFiltre
+                    ? comptesCourants.find((c) => c.id === compteFiltre)?.nom
+                    : "Tous les comptes courants"}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-32 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={evolution}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis
+                    dataKey="mois"
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(v) => monthLabel(v).split(" ")[0]}
+                  />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <RTooltip
+                    formatter={(v: number) => formatEUR(v)}
+                    labelFormatter={(v: string) => monthLabel(v)}
+                  />
+                  <Line type="monotone" dataKey="solde" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {compteFiltre === undefined && comptesCourants.length > 1 && (
         <Card className="mt-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Détail par compte</CardTitle>
-            <CardDescription>Solde cumulé jusqu'au mois sélectionné</CardDescription>
+            <CardDescription>Solde actuel + reste à vivre du mois</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 sm:grid-cols-2">
               {soldesComptes.map(({ compte, solde }) => {
-                const t = totauxMois(transactions, mois, recurrentes, compte.id);
+                const t = totauxMois(
+                  transactions,
+                  mois,
+                  recurrentes,
+                  compte.id,
+                  virementsRecurrents,
+                  comptes
+                );
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={compte.id}
-                    className="flex items-center justify-between rounded-md border p-3"
+                    onClick={() => setCompteId(compte.id)}
+                    className="flex items-center justify-between rounded-md border p-3 text-left hover:bg-accent"
                   >
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium">
@@ -201,13 +449,143 @@ export default function Dashboard() {
                     >
                       {formatEUR(solde)}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Prévisions 3 mois + Calendrier prochaines récurrentes */}
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4" /> Prévisions sur 3 mois
+            </CardTitle>
+            <CardDescription>
+              Récurrentes & virements automatiques uniquement
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {previsions.every((p) => p.revenus === 0 && p.depenses === 0) ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Aucune récurrence à venir.
+              </p>
+            ) : (
+              <>
+                <div className="h-48 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={previsions}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                      <YAxis
+                        tick={{ fontSize: 11 }}
+                        tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                      />
+                      <RTooltip formatter={(v: number) => formatEUR(v)} />
+                      <Bar dataKey="revenus" fill="#10b981" name="Revenus" />
+                      <Bar dataKey="depenses" fill="#ef4444" name="Dépenses" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                  {previsions.map((p) => (
+                    <div key={p.mois} className="rounded border p-2 text-center">
+                      <div className="text-muted-foreground">{p.label}</div>
+                      <div
+                        className={`mt-1 font-semibold ${p.solde >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+                      >
+                        {formatEUR(p.solde)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Repeat className="h-4 w-4" /> Prochaines échéances
+            </CardTitle>
+            <CardDescription>5 prochaines récurrences à venir</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {prochaines.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Aucune récurrence active.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {prochaines.map((p) => {
+                  const today = new Date().toISOString().slice(0, 10);
+                  const dans = Math.round(
+                    (new Date(p.date).getTime() - new Date(today).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  );
+                  return (
+                    <button
+                      type="button"
+                      key={p.key}
+                      onClick={() =>
+                        navigate(
+                          p.type === "virement"
+                            ? "/epargne?tab=virements"
+                            : "/argent?tab=recurrents"
+                        )
+                      }
+                      className="flex w-full items-center justify-between rounded-md border p-2 text-left hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                            p.type === "revenu"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : p.type === "virement"
+                                ? "bg-violet-100 text-violet-700"
+                                : "bg-rose-100 text-rose-700"
+                          }`}
+                        >
+                          {p.type === "revenu" ? (
+                            <ArrowUpRight className="h-4 w-4" />
+                          ) : p.type === "virement" ? (
+                            <ArrowRightLeft className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">{p.libelle}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDate(p.date)} ·{" "}
+                            {dans === 0 ? "aujourd'hui" : dans === 1 ? "demain" : `dans ${dans} j`}
+                            {p.compte ? ` · ${p.compte}` : ""}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className={`text-sm font-semibold ${
+                          p.type === "revenu"
+                            ? "text-emerald-600"
+                            : p.type === "virement"
+                              ? "text-violet-600"
+                              : "text-rose-600"
+                        }`}
+                      >
+                        {p.type === "revenu" ? "+" : "−"} {formatEUR(p.montant)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
@@ -267,16 +645,7 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {objectifs.map((o) => {
                   const compte = o.compteId ? comptes.find((c) => c.id === o.compteId) : null;
-                  let actuel = 0;
-                  if (compte) {
-                    const mvts = mouvements.filter((m) => m.compteId === compte.id);
-                    actuel =
-                      compte.soldeInitial +
-                      mvts.reduce(
-                        (acc, m) => (m.type === "retrait" ? acc - m.montant : acc + m.montant),
-                        0
-                      );
-                  }
+                  const actuel = compte ? soldeCompteEpargne(compte, mouvements, virementsRecurrents) : 0;
                   const pct = Math.min(100, (actuel / o.montantCible) * 100);
                   return (
                     <div key={o.id}>
@@ -296,12 +665,15 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card className="mt-6">
+      <Card
+        className="mt-6 cursor-pointer transition hover:bg-accent/30"
+        onClick={() => navigate("/epargne?tab=epargne")}
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Épargne placée</CardTitle>
-              <CardDescription>Total des comptes d'épargne</CardDescription>
+              <CardDescription>Total des comptes d'épargne (virements auto inclus)</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <PiggyBank className="h-4 w-4 text-muted-foreground" />
@@ -319,7 +691,7 @@ export default function Dashboard() {
         <CardContent>
           {dernieres.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Aucune transaction. Va dans l'onglet Transactions pour en ajouter.
+              Aucune transaction. Va dans Argent → Transactions pour en ajouter.
             </p>
           ) : (
             <Table>
@@ -364,8 +736,59 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Récurrences actives résumé */}
+      {(recurrentes.length > 0 || virementsRecurrents.length > 0) && (
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Récurrentes actives</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-xs text-muted-foreground">
+              {recurrentes.slice(0, 3).map((r) => (
+                <div key={r.id} className="flex justify-between">
+                  <span>{r.libelle}</span>
+                  <span>{labelFrequence(r.frequence ?? "mois", r.intervalle ?? 1)}</span>
+                </div>
+              ))}
+              {recurrentes.length > 3 && (
+                <div className="pt-1 italic">+ {recurrentes.length - 3} autres</div>
+              )}
+              {recurrentes.length === 0 && <div className="italic">Aucune.</div>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Virements automatiques</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-xs text-muted-foreground">
+              {virementsRecurrents.slice(0, 3).map((v) => (
+                <div key={v.id} className="flex justify-between">
+                  <span>{v.libelle}</span>
+                  <span>{labelFrequence(v.frequence, v.intervalle)}</span>
+                </div>
+              ))}
+              {virementsRecurrents.length > 3 && (
+                <div className="pt-1 italic">+ {virementsRecurrents.length - 3} autres</div>
+              )}
+              {virementsRecurrents.length === 0 && <div className="italic">Aucun.</div>}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </>
   );
+}
+
+function delta(courant: number, precedent: number, inversePosNeg: boolean = false): string | undefined {
+  if (precedent === 0 && courant === 0) return undefined;
+  if (precedent === 0) return "vs N-1 : —";
+  const diff = courant - precedent;
+  const pct = (diff / Math.abs(precedent)) * 100;
+  const signe = diff >= 0 ? "+" : "";
+  const positif = inversePosNeg ? diff <= 0 : diff >= 0;
+  void positif;
+  return `vs N-1 : ${signe}${pct.toFixed(0)}%`;
 }
 
 function Kpi({
@@ -374,17 +797,24 @@ function Kpi({
   valeur,
   extra,
   accent,
+  comparaison,
+  onClick,
 }: {
   icon: React.ReactNode;
   titre: string;
   valeur: string;
   extra?: string;
   accent?: "positif" | "negatif";
+  comparaison?: string;
+  onClick?: () => void;
 }) {
   const color =
     accent === "positif" ? "text-emerald-600" : accent === "negatif" ? "text-rose-600" : "";
   return (
-    <Card>
+    <Card
+      onClick={onClick}
+      className={onClick ? "cursor-pointer transition hover:bg-accent/30" : ""}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardDescription>{titre}</CardDescription>
@@ -394,6 +824,7 @@ function Kpi({
       <CardContent>
         <div className={`text-2xl font-semibold ${color}`}>{valeur}</div>
         {extra && <p className="mt-1 text-xs text-muted-foreground">{extra}</p>}
+        {comparaison && <p className="mt-0.5 text-xs text-muted-foreground">{comparaison}</p>}
       </CardContent>
     </Card>
   );

@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default function SimulateurPage() {
+export default function SimulateurPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { projets, achatsProjet, addProjet, updateProjet, deleteProjet } = useStore();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<Projet | null>(null);
@@ -61,10 +61,12 @@ export default function SimulateurPage() {
 
   return (
     <>
-      <PageHeader
-        title="Simulateur de projet"
-        description="Calcule la durée d'épargne ou simule un projet achat par achat."
-      />
+      {!embedded && (
+        <PageHeader
+          title="Simulateur de projet"
+          description="Calcule la durée d'épargne ou simule un projet achat par achat."
+        />
+      )}
 
       <Tabs defaultValue="rapide">
         <TabsList>

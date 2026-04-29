@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function TransactionsPage() {
+export default function TransactionsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const {
     transactions,
     categories,
@@ -87,16 +87,26 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Transactions ponctuelles"
-        description="Dépenses et revenus exceptionnels (les récurrents sont gérés à part)."
-        action={
+      {!embedded && (
+        <PageHeader
+          title="Transactions ponctuelles"
+          description="Dépenses et revenus exceptionnels (les récurrents sont gérés à part)."
+          action={
+            <Button onClick={ouvrirAjout} disabled={comptesCourants.length === 0}>
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          }
+        />
+      )}
+      {embedded && (
+        <div className="mb-4 flex justify-end">
           <Button onClick={ouvrirAjout} disabled={comptesCourants.length === 0}>
             <Plus className="h-4 w-4" />
             Ajouter
           </Button>
-        }
-      />
+        </div>
+      )}
 
       <Card className="mb-4">
         <CardContent className="flex flex-wrap items-end gap-3 p-4">

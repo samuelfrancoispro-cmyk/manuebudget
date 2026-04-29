@@ -13,7 +13,12 @@ import type {
   RapportCSV,
   RapportLigne,
   BankProfile,
+  VirementRecurrent,
 } from "@/types";
+import {
+  expandRecurrentesPourMois,
+  expandVirementsTransactionsPourMois,
+} from "@/lib/calculs";
 
 interface State {
   loaded: boolean;
@@ -32,6 +37,7 @@ interface State {
   rapports: RapportCSV[];
   rapportLignes: RapportLigne[];
   bankProfiles: BankProfile[];
+  virementsRecurrents: VirementRecurrent[];
 
   loadAll: (userId: string) => Promise<void>;
   clearLocal: () => void;
@@ -83,6 +89,10 @@ interface State {
   /** Profils CSV banques sauvegardés (un par fingerprint d'en-têtes). Upsert si même fingerprint. */
   saveBankProfile: (p: Omit<BankProfile, "id">) => Promise<BankProfile>;
   deleteBankProfile: (id: string) => Promise<void>;
+
+  addVirementRecurrent: (v: Omit<VirementRecurrent, "id">) => Promise<void>;
+  updateVirementRecurrent: (id: string, v: Partial<VirementRecurrent>) => Promise<void>;
+  deleteVirementRecurrent: (id: string) => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -131,6 +141,7 @@ export const useStore = create<State>()((set, get) => ({
   rapports: [],
   rapportLignes: [],
   bankProfiles: [],
+  virementsRecurrents: [],
 
   clearLocal: () =>
     set({
@@ -148,6 +159,7 @@ export const useStore = create<State>()((set, get) => ({
       rapports: [],
       rapportLignes: [],
       bankProfiles: [],
+      virementsRecurrents: [],
     }),
 
   loadAll: async (userId) => {
@@ -168,6 +180,7 @@ export const useStore = create<State>()((set, get) => ({
       rapports: [],
       rapportLignes: [],
       bankProfiles: [],
+      virementsRecurrents: [],
     });
     try {
       const [
@@ -183,6 +196,7 @@ export const useStore = create<State>()((set, get) => ({
         raps,
         rapls,
         bps,
+        virs,
       ] = await Promise.all([
         supabase.from("categories").select("*").order("nom"),
         supabase.from("comptes_courants").select("*").order("nom"),
@@ -196,9 +210,10 @@ export const useStore = create<State>()((set, get) => ({
         supabase.from("rapports_csv").select("*").order("dateImport", { ascending: false }),
         supabase.from("rapport_lignes").select("*").order("date", { ascending: false }),
         supabase.from("bank_profiles").select("*").order("nom"),
+        supabase.from("virements_recurrents").select("*").order("libelle"),
       ]);
 
-      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls, bps]
+      const errs = [cats, ccs, txs, recs, cs, mvts, objs, projs, achs, raps, rapls, bps, virs]
         .map((r) => r.error)
         .filter(Boolean);
       if (errs.length) {
@@ -252,6 +267,7 @@ export const useStore = create<State>()((set, get) => ({
         rapports: (raps.data ?? []).map((r: any) => strip<RapportCSV>(r)),
         rapportLignes: (rapls.data ?? []).map((r: any) => strip<RapportLigne>(r)),
         bankProfiles: (bps.data ?? []).map((r: any) => strip<BankProfile>(r)),
+        virementsRecurrents: (virs.data ?? []).map((r: any) => strip<VirementRecurrent>(r)),
       });
     } catch (e) {
       console.error(e);
@@ -352,7 +368,9 @@ export const useStore = create<State>()((set, get) => ({
   deleteCompteCourant: async (id) => {
     const { error } = await supabase.from("comptes_courants").delete().eq("id", id);
     if (error) throw error;
-    // Détache localement les transactions et récurrentes orphelines
+    // Supprime les virements automatiques rattachés à ce compte courant
+    await supabase.from("virements_recurrents").delete().eq("compteCourantId", id);
+    // Détache localement les transactions et récurrentes orphelines, retire les virements
     set((s) => ({
       comptesCourants: s.comptesCourants.filter((x) => x.id !== id),
       transactions: s.transactions.map((t) =>
@@ -361,6 +379,7 @@ export const useStore = create<State>()((set, get) => ({
       recurrentes: s.recurrentes.map((r) =>
         r.compteCourantId === id ? { ...r, compteCourantId: undefined } : r
       ),
+      virementsRecurrents: s.virementsRecurrents.filter((v) => v.compteCourantId !== id),
     }));
   },
   setSoldeActuelCompte: async (id, soldeActuel) => {
@@ -369,26 +388,43 @@ export const useStore = create<State>()((set, get) => ({
     if (!compte) return;
     const auj = new Date().toISOString().slice(0, 10);
     let cumul = 0;
+    // Transactions ponctuelles
     for (const t of s.transactions) {
       if (t.compteCourantId !== id) continue;
       if (t.date > auj) continue;
       cumul += t.type === "revenu" ? t.montant : -t.montant;
     }
+    // Récurrentes échues (toutes fréquences)
     const moisLimite = auj.slice(0, 7);
-    for (const r of s.recurrentes.filter((x) => x.compteCourantId === id)) {
-      const finBoucle = r.moisFin && r.moisFin < moisLimite ? r.moisFin : moisLimite;
-      if (r.moisDebut > finBoucle) continue;
-      let [y, m] = r.moisDebut.split("-").map(Number);
-      const [yf, mf] = finBoucle.split("-").map(Number);
-      const j = Math.min(Math.max(r.jourMois, 1), 28);
-      while (y < yf || (y === yf && m <= mf)) {
-        const date = `${y.toString().padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(j).padStart(2, "0")}`;
-        if (date <= auj) cumul += r.type === "revenu" ? r.montant : -r.montant;
-        m++;
-        if (m > 12) {
-          m = 1;
-          y++;
-        }
+    const moisListe: string[] = [];
+    {
+      const [y0, m0] = moisLimite.split("-").map(Number);
+      const yMin = y0 - 5;
+      let yy = yMin, mm = 1;
+      while (yy < y0 || (yy === y0 && mm <= m0)) {
+        moisListe.push(`${String(yy).padStart(4, "0")}-${String(mm).padStart(2, "0")}`);
+        mm++;
+        if (mm > 12) { mm = 1; yy++; }
+      }
+    }
+    for (const m of moisListe) {
+      const recs = expandRecurrentesPourMois(s.recurrentes, m, {
+        seulementEchues: true,
+        aujourdhui: auj,
+      });
+      for (const t of recs) {
+        if (t.compteCourantId !== id) continue;
+        cumul += t.type === "revenu" ? t.montant : -t.montant;
+      }
+      const virs = expandVirementsTransactionsPourMois(
+        s.virementsRecurrents,
+        s.comptes,
+        m,
+        { seulementEchues: true, aujourdhui: auj }
+      );
+      for (const t of virs) {
+        if (t.compteCourantId !== id) continue;
+        cumul -= t.montant;
       }
     }
     const nouveauSoldeInitial = soldeActuel - cumul;
@@ -416,9 +452,12 @@ export const useStore = create<State>()((set, get) => ({
   deleteCompte: async (id) => {
     const { error } = await supabase.from("comptes_epargne").delete().eq("id", id);
     if (error) throw error;
+    // Supprime virements automatiques visant ce compte épargne
+    await supabase.from("virements_recurrents").delete().eq("compteEpargneId", id);
     set((s) => ({
       comptes: s.comptes.filter((x) => x.id !== id),
       mouvements: s.mouvements.filter((m) => m.compteId !== id),
+      virementsRecurrents: s.virementsRecurrents.filter((v) => v.compteEpargneId !== id),
     }));
   },
 
@@ -608,6 +647,36 @@ export const useStore = create<State>()((set, get) => ({
     const { error } = await supabase.from("bank_profiles").delete().eq("id", id);
     if (error) throw error;
     set((s) => ({ bankProfiles: s.bankProfiles.filter((p) => p.id !== id) }));
+  },
+
+  // ---------- Virements récurrents ----------
+  addVirementRecurrent: async (v) => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from("virements_recurrents")
+      .insert({ ...v, user_id: userId })
+      .select("*")
+      .single();
+    if (error || !data) throw error;
+    set((s) => ({
+      virementsRecurrents: [...s.virementsRecurrents, strip<VirementRecurrent>(data)],
+    }));
+  },
+  updateVirementRecurrent: async (id, v) => {
+    const { error } = await supabase.from("virements_recurrents").update(v).eq("id", id);
+    if (error) throw error;
+    set((s) => ({
+      virementsRecurrents: s.virementsRecurrents.map((x) =>
+        x.id === id ? { ...x, ...v } : x
+      ),
+    }));
+  },
+  deleteVirementRecurrent: async (id) => {
+    const { error } = await supabase.from("virements_recurrents").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({
+      virementsRecurrents: s.virementsRecurrents.filter((x) => x.id !== id),
+    }));
   },
 }));
 

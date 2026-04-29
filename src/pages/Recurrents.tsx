@@ -1,12 +1,17 @@
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Repeat } from "lucide-react";
+import { Plus, Pencil, Trash2, Repeat, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/store/useStore";
-import type { TransactionRecurrente, TypeTransaction } from "@/types";
-import { formatEUR, monthKey, monthLabel } from "@/lib/utils";
+import type { TransactionRecurrente, TypeTransaction, Frequence } from "@/types";
+import { formatEUR, formatDate, monthKey, todayISO } from "@/lib/utils";
+import {
+  expandRecurrentesPourMois,
+  labelFrequence,
+  prochaineOccurrence,
+} from "@/lib/calculs";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +40,24 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function RecurrentsPage() {
+function dateDebutOf(r: TransactionRecurrente): string {
+  if (r.dateDebut) return r.dateDebut;
+  if (r.moisDebut) {
+    const j = Math.min(Math.max(r.jourMois ?? 1, 1), 28);
+    return `${r.moisDebut}-${String(j).padStart(2, "0")}`;
+  }
+  return todayISO();
+}
+function dateFinOf(r: TransactionRecurrente): string | null {
+  if (r.dateFin) return r.dateFin;
+  if (r.moisFin) {
+    const j = Math.min(Math.max(r.jourMois ?? 28, 1), 28);
+    return `${r.moisFin}-${String(j).padStart(2, "0")}`;
+  }
+  return null;
+}
+
+export default function RecurrentsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const {
     recurrentes,
     categories,
@@ -48,39 +70,68 @@ export default function RecurrentsPage() {
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState<TransactionRecurrente | null>(null);
 
-  const totalMois = useMemo(() => {
+  const totalMoisCourant = useMemo(() => {
     const moisCourant = monthKey(new Date().toISOString());
+    const all = expandRecurrentesPourMois(recurrentes, moisCourant);
     let revenus = 0;
     let depenses = 0;
-    for (const r of recurrentes) {
-      if (r.moisDebut > moisCourant) continue;
-      if (r.moisFin && r.moisFin < moisCourant) continue;
-      if (r.type === "revenu") revenus += r.montant;
-      else depenses += r.montant;
+    for (const t of all) {
+      if (t.type === "revenu") revenus += t.montant;
+      else depenses += t.montant;
     }
     return { revenus, depenses, solde: revenus - depenses };
   }, [recurrentes]);
 
   return (
     <>
-      <PageHeader
-        title="Charges & revenus récurrents"
-        description="Loyer, crédit, salaire, abonnements… tout ce qui tombe chaque mois automatiquement."
-        action={
-          <Button onClick={() => { setEdit(null); setOpen(true); }} disabled={comptesCourants.length === 0}>
+      {!embedded && (
+        <PageHeader
+          title="Charges & revenus récurrents"
+          description="Loyer, salaire, abonnements, course du dimanche… tout ce qui revient à intervalle régulier."
+          action={
+            <Button
+              onClick={() => {
+                setEdit(null);
+                setOpen(true);
+              }}
+              disabled={comptesCourants.length === 0}
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          }
+        />
+      )}
+      {embedded && (
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => {
+              setEdit(null);
+              setOpen(true);
+            }}
+            disabled={comptesCourants.length === 0}
+          >
             <Plus className="h-4 w-4" />
             Ajouter
           </Button>
-        }
-      />
+        </div>
+      )}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <Mini label="Revenus mensuels" valeur={formatEUR(totalMois.revenus)} className="text-emerald-600" />
-        <Mini label="Charges mensuelles" valeur={formatEUR(totalMois.depenses)} className="text-rose-600" />
+        <Mini
+          label="Revenus du mois (récurrents)"
+          valeur={formatEUR(totalMoisCourant.revenus)}
+          className="text-emerald-600"
+        />
+        <Mini
+          label="Charges du mois (récurrents)"
+          valeur={formatEUR(totalMoisCourant.depenses)}
+          className="text-rose-600"
+        />
         <Mini
           label="Net mensuel récurrent"
-          valeur={formatEUR(totalMois.solde)}
-          className={totalMois.solde >= 0 ? "text-emerald-600" : "text-rose-600"}
+          valeur={formatEUR(totalMoisCourant.solde)}
+          className={totalMoisCourant.solde >= 0 ? "text-emerald-600" : "text-rose-600"}
         />
       </div>
 
@@ -98,8 +149,8 @@ export default function RecurrentsPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Compte</TableHead>
                   <TableHead>Catégorie</TableHead>
-                  <TableHead>Jour</TableHead>
-                  <TableHead>Période</TableHead>
+                  <TableHead>Fréquence</TableHead>
+                  <TableHead>Prochaine</TableHead>
                   <TableHead className="text-right">Montant</TableHead>
                   <TableHead className="w-[100px] pr-4 text-right">Actions</TableHead>
                 </TableRow>
@@ -108,6 +159,11 @@ export default function RecurrentsPage() {
                 {recurrentes.map((r) => {
                   const cat = categories.find((c) => c.id === r.categorieId);
                   const cc = comptesCourants.find((c) => c.id === r.compteCourantId);
+                  const freq = r.frequence ?? "mois";
+                  const intervalle = r.intervalle ?? 1;
+                  const debut = dateDebutOf(r);
+                  const fin = dateFinOf(r);
+                  const proch = prochaineOccurrence(debut, fin, freq, intervalle);
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="pl-4 font-medium">{r.libelle}</TableCell>
@@ -116,7 +172,9 @@ export default function RecurrentsPage() {
                           {r.type === "revenu" ? "Revenu" : "Charge"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{cc?.nom ?? "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {cc?.nom ?? "—"}
+                      </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center gap-1.5">
                           <span
@@ -126,12 +184,11 @@ export default function RecurrentsPage() {
                           {cat?.nom ?? "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        Le {r.jourMois}
+                      <TableCell className="text-xs text-muted-foreground">
+                        {labelFrequence(freq, intervalle)}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        Depuis {monthLabel(r.moisDebut)}
-                        {r.moisFin ? ` → ${monthLabel(r.moisFin)}` : ""}
+                        {proch ? formatDate(proch) : "Terminée"}
                       </TableCell>
                       <TableCell
                         className={`text-right font-medium ${
@@ -181,7 +238,13 @@ export default function RecurrentsPage() {
         edit={edit}
         onSave={(data) => {
           if (edit) {
-            updateRecurrente(edit.id, data);
+            // On efface les vieux champs pour ne plus les utiliser
+            updateRecurrente(edit.id, {
+              ...data,
+              jourMois: undefined,
+              moisDebut: undefined,
+              moisFin: undefined,
+            });
             toast.success("Récurrent modifié");
           } else {
             addRecurrente(data);
@@ -194,7 +257,15 @@ export default function RecurrentsPage() {
   );
 }
 
-function Mini({ label, valeur, className }: { label: string; valeur: string; className?: string }) {
+function Mini({
+  label,
+  valeur,
+  className,
+}: {
+  label: string;
+  valeur: string;
+  className?: string;
+}) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -222,7 +293,9 @@ function RecurrentForm({
   onSave: (r: Omit<TransactionRecurrente, "id">) => void;
 }) {
   const { categories, comptesCourants } = useStore();
-  const moisAuj = monthKey(new Date().toISOString());
+
+  const initialDebut = edit ? dateDebutOf(edit) : todayISO();
+  const initialFin = edit ? dateFinOf(edit) ?? "" : "";
 
   const [libelle, setLibelle] = useState(edit?.libelle ?? "");
   const [type, setType] = useState<TypeTransaction>(edit?.type ?? "depense");
@@ -231,23 +304,27 @@ function RecurrentForm({
   const [compteCourantId, setCompteCourantId] = useState(
     edit?.compteCourantId ?? comptesCourants[0]?.id ?? ""
   );
-  const [jourMois, setJourMois] = useState(edit ? String(edit.jourMois) : "1");
-  const [moisDebut, setMoisDebut] = useState(edit?.moisDebut ?? moisAuj);
-  const [moisFin, setMoisFin] = useState(edit?.moisFin ?? "");
+  const [frequence, setFrequence] = useState<Frequence>(edit?.frequence ?? "mois");
+  const [intervalle, setIntervalle] = useState(edit ? String(edit.intervalle ?? 1) : "1");
+  const [dateDebut, setDateDebut] = useState(initialDebut);
+  const [dateFin, setDateFin] = useState(initialFin);
   const [description, setDescription] = useState(edit?.description ?? "");
 
   const catsFiltrees = categories.filter((c) => c.type === type);
 
   const handleOpenChange = (b: boolean) => {
     if (b) {
+      const dd = edit ? dateDebutOf(edit) : todayISO();
+      const df = edit ? dateFinOf(edit) ?? "" : "";
       setLibelle(edit?.libelle ?? "");
       setType(edit?.type ?? "depense");
       setMontant(edit ? String(edit.montant) : "");
       setCategorieId(edit?.categorieId ?? "");
       setCompteCourantId(edit?.compteCourantId ?? comptesCourants[0]?.id ?? "");
-      setJourMois(edit ? String(edit.jourMois) : "1");
-      setMoisDebut(edit?.moisDebut ?? moisAuj);
-      setMoisFin(edit?.moisFin ?? "");
+      setFrequence(edit?.frequence ?? "mois");
+      setIntervalle(edit ? String(edit.intervalle ?? 1) : "1");
+      setDateDebut(dd);
+      setDateFin(df);
       setDescription(edit?.description ?? "");
     }
     onOpenChange(b);
@@ -259,19 +336,21 @@ function RecurrentForm({
     if (!m || m <= 0) return toast.error("Montant invalide");
     if (!categorieId) return toast.error("Catégorie requise");
     if (!compteCourantId) return toast.error("Compte requis");
-    const j = parseInt(jourMois);
-    if (!j || j < 1 || j > 28) return toast.error("Jour entre 1 et 28");
-    if (!/^\d{4}-\d{2}$/.test(moisDebut)) return toast.error("Mois début invalide");
-    if (moisFin && !/^\d{4}-\d{2}$/.test(moisFin)) return toast.error("Mois fin invalide");
+    const i = parseInt(intervalle);
+    if (!i || i < 1) return toast.error("Intervalle invalide (≥ 1)");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateDebut)) return toast.error("Date début invalide");
+    if (dateFin && !/^\d{4}-\d{2}-\d{2}$/.test(dateFin)) return toast.error("Date fin invalide");
+    if (dateFin && dateFin < dateDebut) return toast.error("Date fin avant début");
     onSave({
       libelle: libelle.trim(),
       type,
       montant: m,
       categorieId,
       compteCourantId,
-      jourMois: j,
-      moisDebut,
-      moisFin: moisFin || undefined,
+      frequence,
+      intervalle: i,
+      dateDebut,
+      dateFin: dateFin || undefined,
       description: description || undefined,
     });
   };
@@ -281,8 +360,9 @@ function RecurrentForm({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{edit ? "Modifier" : "Nouveau"} récurrent</DialogTitle>
-          <DialogDescription>
-            Tombe automatiquement chaque mois au jour indiqué.
+          <DialogDescription className="flex items-center gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5" />
+            Choisis une fréquence libre : tous les jours, toutes les 2 semaines, chaque trimestre…
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
@@ -356,31 +436,49 @@ function RecurrentForm({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="mb-1.5 block">Jour du mois</Label>
+              <Label className="mb-1.5 block">Fréquence</Label>
+              <Select value={frequence} onValueChange={(v) => setFrequence(v as Frequence)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jour">Jour</SelectItem>
+                  <SelectItem value="semaine">Semaine</SelectItem>
+                  <SelectItem value="mois">Mois</SelectItem>
+                  <SelectItem value="annee">Année</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="mb-1.5 block">Tous les… (intervalle)</Label>
               <Input
                 type="number"
                 min="1"
-                max="28"
-                value={jourMois}
-                onChange={(e) => setJourMois(e.target.value)}
+                value={intervalle}
+                onChange={(e) => setIntervalle(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            → {labelFrequence(frequence, parseInt(intervalle) || 1)}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-1.5 block">Date 1ère échéance</Label>
+              <Input
+                type="date"
+                value={dateDebut}
+                onChange={(e) => setDateDebut(e.target.value)}
               />
             </div>
             <div>
-              <Label className="mb-1.5 block">Mois début</Label>
+              <Label className="mb-1.5 block">Date de fin (optionnelle)</Label>
               <Input
-                type="month"
-                value={moisDebut}
-                onChange={(e) => setMoisDebut(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label className="mb-1.5 block">Mois fin (opt.)</Label>
-              <Input
-                type="month"
-                value={moisFin}
-                onChange={(e) => setMoisFin(e.target.value)}
+                type="date"
+                value={dateFin}
+                onChange={(e) => setDateFin(e.target.value)}
               />
             </div>
           </div>

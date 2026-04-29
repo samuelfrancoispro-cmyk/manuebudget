@@ -29,10 +29,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function EpargnePage() {
+export default function EpargnePage({ embedded = false }: { embedded?: boolean } = {}) {
   const {
     comptes,
     mouvements,
+    virementsRecurrents,
     objectifs,
     addCompte,
     updateCompte,
@@ -51,19 +52,24 @@ export default function EpargnePage() {
   const [dlgObj, setDlgObj] = useState(false);
   const [editObj, setEditObj] = useState<Objectif | null>(null);
 
-  const total = useMemo(() => totalEpargne(comptes, mouvements), [comptes, mouvements]);
+  const total = useMemo(
+    () => totalEpargne(comptes, mouvements, virementsRecurrents),
+    [comptes, mouvements, virementsRecurrents]
+  );
 
   return (
     <>
-      <PageHeader
-        title="Épargne"
-        description="Tes comptes, mouvements et objectifs."
-        action={
-          <Badge variant="outline" className="text-base px-3 py-1.5">
-            Total : <span className="ml-1.5 font-semibold">{formatEUR(total)}</span>
-          </Badge>
-        }
-      />
+      {!embedded && (
+        <PageHeader
+          title="Épargne"
+          description="Tes comptes, mouvements et objectifs."
+          action={
+            <Badge variant="outline" className="text-base px-3 py-1.5">
+              Total : <span className="ml-1.5 font-semibold">{formatEUR(total)}</span>
+            </Badge>
+          }
+        />
+      )}
 
       <Tabs defaultValue="comptes">
         <TabsList>
@@ -93,7 +99,7 @@ export default function EpargnePage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {comptes.map((c) => {
-                const solde = soldeCompte(c, mouvements);
+                const solde = soldeCompte(c, mouvements, virementsRecurrents);
                 return (
                   <Card key={c.id}>
                     <CardHeader>
@@ -185,7 +191,7 @@ export default function EpargnePage() {
             <div className="grid gap-4 md:grid-cols-2">
               {objectifs.map((o) => {
                 const compte = o.compteId ? comptes.find((c) => c.id === o.compteId) : null;
-                const actuel = compte ? soldeCompte(compte, mouvements) : 0;
+                const actuel = compte ? soldeCompte(compte, mouvements, virementsRecurrents) : 0;
                 const { pct, restant } = progressionObjectif(o.montantCible, actuel);
                 return (
                   <Card key={o.id}>

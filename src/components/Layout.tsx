@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  ArrowLeftRight,
   PiggyBank,
-  Calculator,
   Settings,
   Wallet,
-  Repeat,
   PieChart,
   Sun,
   Moon,
@@ -23,11 +20,8 @@ import { Button } from "@/components/ui/button";
 
 const nav = [
   { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { to: "/comptes", label: "Mes comptes", icon: Wallet },
-  { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { to: "/recurrents", label: "Récurrents", icon: Repeat },
-  { to: "/epargne", label: "Épargne", icon: PiggyBank },
-  { to: "/simulateur", label: "Simulateur", icon: Calculator },
+  { to: "/argent", label: "Argent", icon: Wallet },
+  { to: "/epargne", label: "Épargne & projets", icon: PiggyBank },
   { to: "/rapports", label: "Rapports CSV", icon: PieChart },
   { to: "/parametres", label: "Paramètres", icon: Settings },
   { to: "/aide", label: "Aide", icon: HelpCircle },

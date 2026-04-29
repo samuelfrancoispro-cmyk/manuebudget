@@ -3,11 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import Comptes from "./pages/Comptes";
-import Transactions from "./pages/Transactions";
-import Recurrents from "./pages/Recurrents";
-import Epargne from "./pages/Epargne";
-import Simulateur from "./pages/Simulateur";
+import Argent from "./pages/Argent";
+import EpargneHub from "./pages/EpargneHub";
 import Parametres from "./pages/Parametres";
 import Aide from "./pages/Aide";
 import Rapports from "./pages/Rapports";
@@ -50,11 +47,12 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/comptes" element={<Comptes />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/recurrents" element={<Recurrents />} />
-          <Route path="/epargne" element={<Epargne />} />
-          <Route path="/simulateur" element={<Simulateur />} />
+          <Route path="/argent" element={<Argent />} />
+          <Route path="/epargne" element={<EpargneHub />} />
+          <Route path="/comptes" element={<Navigate to="/argent?tab=comptes" replace />} />
+          <Route path="/transactions" element={<Navigate to="/argent?tab=transactions" replace />} />
+          <Route path="/recurrents" element={<Navigate to="/argent?tab=recurrents" replace />} />
+          <Route path="/simulateur" element={<Navigate to="/epargne?tab=simulateur" replace />} />
           <Route path="/rapports" element={<Rapports />} />
           <Route path="/parametres" element={<Parametres />} />
           <Route path="/aide" element={<Aide />} />

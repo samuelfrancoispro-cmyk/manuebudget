@@ -16,6 +16,28 @@ type Article = {
 
 const articles: Article[] = [
   {
+    id: "nouvelle-structure",
+    titre: "Nouvelle structure : 6 sections au lieu de 9",
+    categorie: "Nouveautés",
+    motsCles: ["structure", "navigation", "argent", "épargne", "menu", "regroupement"],
+    contenu: [
+      {
+        texte:
+          "L'app a été réorganisée pour aller plus vite : 6 sections principales au lieu de 9 anciennes pages éclatées.",
+      },
+      {
+        sous: "Les 6 sections",
+        texte:
+          "1. Tableau de bord — vue d'ensemble interactive\n2. Argent — comptes courants, transactions ponctuelles, charges récurrentes (3 onglets)\n3. Épargne & projets — comptes d'épargne, virements automatiques, simulateur (3 onglets)\n4. Rapports CSV — import relevé bancaire\n5. Paramètres — comptes, catégories, sauvegarde\n6. Aide",
+      },
+      {
+        sous: "Anciens liens",
+        texte:
+          "Les anciennes URL (/comptes, /transactions, /recurrents, /simulateur) redirigent automatiquement vers le bon onglet — tes favoris continuent de fonctionner.",
+      },
+    ],
+  },
+  {
     id: "premiers-pas",
     titre: "Premiers pas",
     categorie: "Démarrage",
@@ -28,7 +50,7 @@ const articles: Article[] = [
       {
         sous: "Étapes recommandées",
         texte:
-          "1. Va dans « Mes comptes » et saisis ton solde actuel.\n2. Va dans « Récurrents » et ajoute ton salaire + tes charges fixes (loyer, abonnements).\n3. Note tes premières transactions ponctuelles dans « Transactions ».",
+          "1. Onglet Argent → Comptes courants : saisis ton solde actuel.\n2. Onglet Argent → Récurrents : ajoute ton salaire + tes charges fixes (loyer, abonnements).\n3. Onglet Argent → Transactions : note tes premières transactions ponctuelles.\n4. Onglet Épargne & projets → Virements automatiques : programme un virement mensuel vers ton livret.",
       },
     ],
   },
@@ -67,7 +89,7 @@ const articles: Article[] = [
       {
         sous: "Comment l'utiliser",
         texte:
-          "Va dans « Mes comptes » → entre le montant exact lu sur ton appli bancaire → clique « Mettre à jour ». L'app additionne/soustrait toutes les transactions et récurrents passés pour retrouver le bon point de départ.",
+          "Va dans Argent → Comptes courants → entre le montant exact lu sur ton appli bancaire → clique « Mettre à jour ». L'app additionne/soustrait toutes les transactions, récurrents et virements automatiques passés pour retrouver le bon point de départ.",
       },
     ],
   },
@@ -84,7 +106,7 @@ const articles: Article[] = [
       {
         sous: "Ajouter",
         texte:
-          "Onglet « Transactions » → bouton « Ajouter ». Renseigne date, type (revenu/dépense), montant, catégorie et le compte courant rattaché.",
+          "Onglet Argent → Transactions → bouton « Ajouter ». Renseigne date, type (revenu/dépense), montant, catégorie et le compte courant rattaché.",
       },
       {
         sous: "Filtrer",
@@ -95,23 +117,78 @@ const articles: Article[] = [
   },
   {
     id: "recurrents",
-    titre: "Charges et revenus récurrents",
+    titre: "Charges et revenus récurrents (fréquences flexibles)",
     categorie: "Récurrents",
-    motsCles: ["récurrent", "loyer", "salaire", "abonnement", "mensuel", "automatique"],
+    motsCles: [
+      "récurrent",
+      "loyer",
+      "salaire",
+      "abonnement",
+      "mensuel",
+      "hebdomadaire",
+      "annuel",
+      "fréquence",
+      "automatique",
+    ],
     contenu: [
       {
         texte:
-          "Un récurrent = un mouvement qui tombe le même jour chaque mois (loyer le 5, salaire le 28, abonnement Netflix le 15…). Tu le saisis UNE FOIS et l'app l'ajoute automatiquement chaque mois dans tes calculs.",
+          "Un récurrent = un mouvement qui se répète à intervalle régulier. Depuis la dernière mise à jour, tu choisis librement la fréquence : tous les jours, toutes les X semaines, tous les X mois ou tous les X ans.",
+      },
+      {
+        sous: "Exemples concrets",
+        texte:
+          "• Loyer le 5 de chaque mois → fréquence Mois, intervalle 1, date début 2025-01-05\n• Salaire le 28 → fréquence Mois, intervalle 1, date début 2025-01-28\n• Courses hebdo le samedi → fréquence Semaine, intervalle 1\n• Abonnement annuel (assurance) → fréquence Année, intervalle 1\n• Cotisation tous les 2 mois → fréquence Mois, intervalle 2",
       },
       {
         sous: "Créer un récurrent",
         texte:
-          "Onglet « Récurrents » → « Ajouter ». Choisis libellé, montant, type, jour du mois (1-28), mois de début, et éventuellement un mois de fin (utile pour un crédit qui se termine).",
+          "Onglet Argent → Récurrents → « Ajouter ». Renseigne libellé, montant, type, fréquence + intervalle, date de début et (optionnel) date de fin pour les crédits ou abonnements à durée limitée.",
       },
       {
         sous: "Important",
         texte:
-          "Les récurrents ne créent PAS de transactions individuelles : ils sont calculés à la volée. Tu n'as donc rien à faire chaque mois — juste à les modifier si le montant change.",
+          "Les récurrents ne créent PAS de transactions individuelles : ils sont calculés à la volée et apparaissent partout (dashboard, soldes, rapports). Si le montant change, modifie le récurrent — pas besoin de retoucher chaque mois.",
+      },
+      {
+        sous: "Migration v2",
+        texte:
+          "Les anciens récurrents (jour du mois + mois de début/fin) ont été automatiquement convertis vers le nouveau format. Tu n'as rien à faire.",
+      },
+    ],
+  },
+  {
+    id: "virements-auto",
+    titre: "Virements automatiques vers l'épargne",
+    categorie: "Récurrents",
+    motsCles: [
+      "virement",
+      "épargne",
+      "automatique",
+      "livret",
+      "transfert",
+      "compte courant",
+      "récurrent",
+    ],
+    contenu: [
+      {
+        texte:
+          "Un virement automatique simule un transfert régulier de l'un de tes comptes courants vers un compte épargne. L'app le déduit automatiquement du compte source et l'ajoute au compte épargne, à la fréquence choisie.",
+      },
+      {
+        sous: "Cas d'usage",
+        texte:
+          "• 100 €/mois du compte courant vers le Livret A le 1er\n• 50 €/semaine vers une cagnotte vacances\n• Versement annuel sur l'assurance vie en début d'année",
+      },
+      {
+        sous: "Créer un virement automatique",
+        texte:
+          "Onglet Épargne & projets → « Virements automatiques » → « Ajouter ». Renseigne libellé, compte courant source, compte épargne destinataire, montant, fréquence, intervalle et date de début.",
+      },
+      {
+        sous: "Effet sur les calculs",
+        texte:
+          "Le virement apparaît comme une dépense sur le compte courant (réduisant son solde et le reste à vivre du mois) ET comme un versement sur le compte épargne (augmentant le solde épargne). Le total reste cohérent : ton patrimoine global ne change pas, seule la répartition courant ↔ épargne évolue.",
       },
     ],
   },
@@ -128,12 +205,17 @@ const articles: Article[] = [
       {
         sous: "Créer un compte épargne",
         texte:
-          "« Épargne » → « Nouveau compte ». Renseigne nom, solde initial et taux annuel (en %). Ex : Livret A à 3 %.",
+          "Épargne & projets → onglet « Comptes & objectifs » → « Nouveau compte ». Renseigne nom, solde initial et taux annuel (en %). Ex : Livret A à 3 %.",
       },
       {
         sous: "Mouvements",
         texte:
-          "Sur chaque compte, ajoute des « versements » (de ton compte courant vers l'épargne) ou « retraits ». L'app projette le capital avec capitalisation mensuelle pour estimer les intérêts à venir.",
+          "Sur chaque compte, ajoute des « versements » manuels ou « retraits ». L'app projette le capital avec capitalisation mensuelle pour estimer les intérêts à venir.",
+      },
+      {
+        sous: "Et les virements automatiques ?",
+        texte:
+          "Pour des transferts réguliers (ex : 100 €/mois vers le Livret A), utilise l'onglet « Virements automatiques » plutôt que de saisir un mouvement manuel chaque mois. Voir l'article dédié.",
       },
     ],
   },
@@ -150,12 +232,12 @@ const articles: Article[] = [
       {
         sous: "Simulation rapide",
         texte:
-          "Onglet « Simulation d'épargne » → joue avec les valeurs (cible, apport, versement, taux). Le résultat se met à jour en direct. Tu peux enregistrer le projet pour le retrouver plus tard.",
+          "Épargne & projets → onglet « Simulateur & projets » → sous-onglet « Simulation d'épargne ». Joue avec les valeurs (cible, apport, versement, taux). Le résultat se met à jour en direct. Tu peux enregistrer le projet pour le retrouver plus tard.",
       },
       {
         sous: "Projet avec achats",
         texte:
-          "Onglet « Projets & achats » → ouvre un projet → bouton « Gérer les achats ». Pour chaque devis ou achat (cuisine, électroménager, billets…), saisis libellé, montant, date prévue, et coche « Effectué » quand c'est payé. Le cumul des achats te donne le coût RÉEL du projet.",
+          "Sous-onglet « Projets & achats » → ouvre un projet → bouton « Gérer les achats ». Pour chaque devis ou achat (cuisine, électroménager, billets…), saisis libellé, montant, date prévue, et coche « Effectué » quand c'est payé. Le cumul des achats te donne le coût RÉEL du projet.",
       },
     ],
   },
@@ -226,7 +308,7 @@ const articles: Article[] = [
       {
         sous: "Créer",
         texte:
-          "Va dans l'onglet Épargne, section Objectifs → « Ajouter ». Si tu rattaches l'objectif à un compte épargne, la barre de progression utilise le solde de ce compte.",
+          "Épargne & projets → onglet « Comptes & objectifs » → section Objectifs → « Ajouter ». Si tu rattaches l'objectif à un compte épargne, la barre de progression utilise le solde du compte (incluant les virements automatiques).",
       },
     ],
   },
@@ -251,16 +333,84 @@ const articles: Article[] = [
     id: "tableau-bord",
     titre: "Lire le tableau de bord",
     categorie: "Démarrage",
-    motsCles: ["dashboard", "tableau", "statistique", "reste à vivre", "graphique"],
+    motsCles: [
+      "dashboard",
+      "tableau",
+      "statistique",
+      "reste à vivre",
+      "graphique",
+      "prévisions",
+      "sparkline",
+      "comparaison",
+    ],
     contenu: [
       {
         texte:
-          "Le tableau de bord affiche par mois : revenus, dépenses, reste à vivre (revenus − dépenses), solde des comptes, répartition par catégorie. Tu peux changer le mois affiché.",
+          "Le tableau de bord est la vue centrale de l'app. Filtre par compte et par mois en haut à droite. Toutes les valeurs reflètent : transactions ponctuelles + récurrentes + virements automatiques.",
+      },
+      {
+        sous: "KPI cliquables (4 cartes du haut)",
+        texte:
+          "Revenus / Dépenses / Reste à vivre / Solde compte. Chaque carte affiche en plus une comparaison avec le mois précédent (vs N-1 ±%). Cliquer sur Revenus ou Dépenses ouvre les transactions, cliquer sur Solde compte ouvre la liste des comptes.",
+      },
+      {
+        sous: "Évolution 6 mois",
+        texte:
+          "Courbe du solde des comptes courants sur les 6 derniers mois (mois sélectionné inclus). Permet de voir la tendance : tu épargnes ou tu grignotes ?",
+      },
+      {
+        sous: "Prévisions 3 mois",
+        texte:
+          "Bar chart des 3 prochains mois basé sur les récurrentes + virements automatiques (les transactions ponctuelles ne sont pas extrapolées). Indique si tu vas être positif ou négatif.",
+      },
+      {
+        sous: "Prochaines échéances",
+        texte:
+          "Les 5 prochaines occurrences (récurrentes + virements) classées par date. Indique combien de jours te séparent de chacune et le compte concerné. Cliquer sur une ligne ouvre l'écran de gestion correspondant.",
       },
       {
         sous: "Reste à vivre",
         texte:
-          "C'est ce qui te reste après avoir payé toutes tes charges (récurrentes + transactions du mois). Si négatif, tu dépenses plus que tu ne gagnes ce mois-ci.",
+          "Revenus − Dépenses du mois (incluant virements automatiques considérés comme dépenses du compte courant). Si négatif, tu dépenses plus que tu ne gagnes ce mois.",
+      },
+    ],
+  },
+  {
+    id: "connectivite",
+    titre: "Comment tout est connecté",
+    categorie: "Nouveautés",
+    motsCles: [
+      "synchronisation",
+      "connectivité",
+      "harmonie",
+      "cohérent",
+      "lien",
+      "cumul",
+    ],
+    contenu: [
+      {
+        texte:
+          "Toutes les données circulent : aucune saisie n'est isolée. Comprends une fois, profite partout.",
+      },
+      {
+        sous: "Une transaction ponctuelle…",
+        texte:
+          "…apparaît sur Argent > Transactions, modifie le solde du compte courant rattaché, change le KPI Dépenses/Revenus du dashboard, alimente le camembert par catégorie et l'export CSV.",
+      },
+      {
+        sous: "Un récurrent…",
+        texte:
+          "…n'est saisi qu'une fois. Il génère des transactions virtuelles à la volée pour le bon mois, modifiant Reste à vivre, soldes, prévisions, prochaines échéances, total mensuel par catégorie.",
+      },
+      {
+        sous: "Un virement automatique…",
+        texte:
+          "…sort du compte courant choisi (impact dépenses + solde courant) ET entre sur le compte épargne (impact total épargne + barre d'objectif). Visible dans Argent > Récurrents (côté courant) ET dans Épargne > Virements (côté config).",
+      },
+      {
+        sous: "Saisie de solde réel",
+        texte:
+          "Quand tu ajustes le solde réel d'un compte (Argent > Comptes courants), l'app recalcule le solde initial pour que toutes les statistiques passées et futures restent cohérentes — sans rien perdre.",
       },
     ],
   },
