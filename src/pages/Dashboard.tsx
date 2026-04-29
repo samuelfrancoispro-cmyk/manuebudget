@@ -396,8 +396,8 @@ export default function Dashboard() {
                   />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                   <RTooltip
-                    formatter={(v: number) => formatEUR(v)}
-                    labelFormatter={(v: string) => monthLabel(v)}
+                    formatter={(v) => formatEUR(Number(v))}
+                    labelFormatter={(v) => monthLabel(String(v))}
                   />
                   <Line type="monotone" dataKey="solde" stroke="#0ea5e9" strokeWidth={2} dot={false} />
                 </LineChart>
@@ -484,7 +484,7 @@ export default function Dashboard() {
                         tick={{ fontSize: 11 }}
                         tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                       />
-                      <RTooltip formatter={(v: number) => formatEUR(v)} />
+                      <RTooltip formatter={(v) => formatEUR(Number(v))} />
                       <Bar dataKey="revenus" fill="#10b981" name="Revenus" />
                       <Bar dataKey="depenses" fill="#ef4444" name="Dépenses" />
                     </BarChart>
