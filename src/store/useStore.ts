@@ -15,6 +15,7 @@ import type {
   BankProfile,
   VirementRecurrent,
   ActifBoursier,
+  Profile,
 } from "@/types";
 
 interface State {
@@ -95,6 +96,12 @@ interface State {
   addActif: (a: Omit<ActifBoursier, "id">) => Promise<void>;
   updateActif: (id: string, a: Partial<ActifBoursier>) => Promise<void>;
   deleteActif: (id: string) => Promise<void>;
+
+  profile: Profile | null;
+  loadProfile: (userId: string) => Promise<void>;
+  updateProfile: (data: Partial<Profile>) => Promise<void>;
+  setOnboardingStep: (step: number) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -145,6 +152,7 @@ export const useStore = create<State>()((set, get) => ({
   bankProfiles: [],
   virementsRecurrents: [],
   actifs: [],
+  profile: null,
 
   clearLocal: () =>
     set({
@@ -164,6 +172,7 @@ export const useStore = create<State>()((set, get) => ({
       bankProfiles: [],
       virementsRecurrents: [],
       actifs: [],
+      profile: null,
     }),
 
   loadAll: async (userId) => {
@@ -241,21 +250,32 @@ export const useStore = create<State>()((set, get) => ({
           categories = data.map((r: any) => strip<Categorie>(r));
         }
       }
-      if (comptesCourants.length === 0) {
-        const { data, error } = await supabase
-          .from("comptes_courants")
-          .insert({
-            user_id: userId,
-            nom: "Compte courant",
-            type: "perso",
-            soldeInitial: 0,
-            description: "Compte courant principal",
-          })
+      // Charger ou créer le profil
+      let profile: Profile | null = null;
+      const { data: profRow } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (profRow) {
+        profile = strip<Profile>(profRow);
+      } else {
+        const { data: newProf } = await supabase
+          .from("profiles")
+          .insert({ user_id: userId })
           .select("*")
           .single();
-        if (!error && data) {
-          comptesCourants = [strip<CompteCourant>(data)];
-        }
+        profile = newProf ? strip<Profile>(newProf) : null;
+      }
+
+      // Migration : utilisateurs existants (ont déjà des comptes) → onboarding auto-complété
+      if (profile && !profile.onboardingCompleted && comptesCourants.length > 0) {
+        await supabase
+          .from("profiles")
+          .update({ "onboardingCompleted": true, "onboardingStep": 6 })
+          .eq("user_id", userId);
+        profile = { ...profile, onboardingCompleted: true, onboardingStep: 6 };
       }
 
       set({
@@ -276,6 +296,7 @@ export const useStore = create<State>()((set, get) => ({
         bankProfiles: (bps.data ?? []).map((r: any) => strip<BankProfile>(r)),
         virementsRecurrents: (virs.data ?? []).map((r: any) => strip<VirementRecurrent>(r)),
         actifs: (acts.data ?? []).map((r: any) => strip<ActifBoursier>(r)),
+        profile,
       });
     } catch (e) {
       console.error(e);
@@ -675,6 +696,47 @@ export const useStore = create<State>()((set, get) => ({
     const { error } = await supabase.from("actifs_boursier").delete().eq("id", id);
     if (error) throw error;
     set((s) => ({ actifs: s.actifs.filter((x) => x.id !== id) }));
+  },
+
+  // ---------- Profil utilisateur ----------
+  loadProfile: async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data) set((s) => ({ ...s, profile: strip<Profile>(data) }));
+  },
+
+  updateProfile: async (data: Partial<Profile>) => {
+    const userId = await getUserId();
+    const { error } = await supabase
+      .from("profiles")
+      .update(data)
+      .eq("user_id", userId);
+    if (error) throw error;
+    set((s) => ({ ...s, profile: s.profile ? { ...s.profile, ...data } : null }));
+  },
+
+  setOnboardingStep: async (step: number) => {
+    const userId = await getUserId();
+    await supabase
+      .from("profiles")
+      .update({ "onboardingStep": step })
+      .eq("user_id", userId);
+    set((s) => ({ ...s, profile: s.profile ? { ...s.profile, onboardingStep: step } : null }));
+  },
+
+  completeOnboarding: async () => {
+    const userId = await getUserId();
+    await supabase
+      .from("profiles")
+      .update({ "onboardingCompleted": true, "onboardingStep": 6 })
+      .eq("user_id", userId);
+    set((s) => ({
+      ...s,
+      profile: s.profile ? { ...s.profile, onboardingCompleted: true, onboardingStep: 6 } : null,
+    }));
   },
 }));
 
