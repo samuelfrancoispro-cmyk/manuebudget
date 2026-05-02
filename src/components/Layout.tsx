@@ -13,21 +13,14 @@ import {
   LogOut,
   HelpCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
-const nav = [
-  { to: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { to: "/argent", label: "Argent", icon: Wallet },
-  { to: "/epargne", label: "Épargne & projets", icon: PiggyBank },
-  { to: "/rapports", label: "Rapports CSV", icon: PieChart },
-  { to: "/parametres", label: "Paramètres", icon: Settings },
-  { to: "/aide", label: "Aide", icon: HelpCircle },
-];
-
 export default function Layout() {
+  const { t } = useTranslation();
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,24 +30,28 @@ export default function Layout() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  const nav = [
+    { to: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { to: "/argent", label: t("nav.money"), icon: Wallet },
+    { to: "/epargne", label: t("nav.savings"), icon: PiggyBank },
+    { to: "/rapports", label: t("nav.reports"), icon: PieChart },
+    { to: "/parametres", label: t("nav.settings"), icon: Settings },
+    { to: "/aide", label: t("nav.help"), icon: HelpCircle },
+  ];
+
   return (
     <div className="flex min-h-screen bg-muted/30">
       {/* Mobile top bar */}
       <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
         <div className="flex items-center gap-2">
           <Wallet className="h-5 w-5" />
-          <span className="font-semibold">Budget</span>
+          <span className="font-semibold">{t("nav.appName")}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={toggle} aria-label="Changer le thème">
+          <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("nav.toggleTheme")}>
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Ouvrir le menu"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label={t("nav.openMenu")}>
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -63,26 +60,18 @@ export default function Layout() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 max-w-[80%] border-r bg-background shadow-xl">
             <div className="flex h-14 items-center justify-between border-b px-4">
               <div className="flex items-center gap-2">
                 <Wallet className="h-5 w-5" />
-                <span className="font-semibold">Budget</span>
+                <span className="font-semibold">{t("nav.appName")}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileOpen(false)}
-                aria-label="Fermer"
-              >
+              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label={t("nav.close")}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <NavList onClick={() => setMobileOpen(false)} />
+            <NavList nav={nav} onClick={() => setMobileOpen(false)} />
             <div className="mt-2 space-y-2 border-t p-3">
               {user?.email && (
                 <div className="truncate px-1 text-xs text-muted-foreground" title={user.email}>
@@ -91,11 +80,11 @@ export default function Layout() {
               )}
               <Button variant="outline" className="w-full" onClick={toggle}>
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                {theme === "dark" ? "Mode clair" : "Mode sombre"}
+                {theme === "dark" ? t("common.lightMode") : t("common.darkMode")}
               </Button>
               <Button variant="ghost" className="w-full" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
-                Se déconnecter
+                {t("nav.logout")}
               </Button>
             </div>
           </aside>
@@ -106,9 +95,9 @@ export default function Layout() {
       <aside className="hidden w-60 shrink-0 border-r bg-background md:flex md:flex-col">
         <div className="flex h-16 items-center gap-2 border-b px-6">
           <Wallet className="h-5 w-5" />
-          <span className="font-semibold">Budget</span>
+          <span className="font-semibold">{t("nav.appName")}</span>
         </div>
-        <NavList />
+        <NavList nav={nav} />
         <div className="mt-auto space-y-2 border-t p-3">
           {user?.email && (
             <div className="truncate px-1 text-xs text-muted-foreground" title={user.email}>
@@ -117,11 +106,11 @@ export default function Layout() {
           )}
           <Button variant="outline" className="w-full justify-start" onClick={toggle}>
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            {theme === "dark" ? "Mode clair" : "Mode sombre"}
+            {theme === "dark" ? t("common.lightMode") : t("common.darkMode")}
           </Button>
           <Button variant="ghost" className="w-full justify-start" onClick={signOut}>
             <LogOut className="h-4 w-4" />
-            Se déconnecter
+            {t("nav.logout")}
           </Button>
         </div>
       </aside>
@@ -135,7 +124,7 @@ export default function Layout() {
   );
 }
 
-function NavList({ onClick }: { onClick?: () => void }) {
+function NavList({ nav, onClick }: { nav: { to: string; label: string; icon: React.ElementType }[]; onClick?: () => void }) {
   return (
     <nav className="flex flex-col gap-1 p-3">
       {nav.map((item) => (
