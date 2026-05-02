@@ -216,3 +216,11 @@ export interface RapportLigne {
   /** Montant signé : négatif = débit, positif = crédit */
   montant: number;
 }
+
+export interface Profile {
+  firstName: string | null;
+  preferredLanguage: string;
+  preferredCurrency: string;
+  onboardingCompleted: boolean;
+  onboardingStep: number;
+}

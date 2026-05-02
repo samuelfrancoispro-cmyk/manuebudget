@@ -96,3 +96,32 @@ create policy "vr_delete_own" on public.virements_recurrents
 -- ============================================================
 -- Fin migration v3
 -- ============================================================
+
+-- =============================================
+-- TABLE: profiles (pivot SaaS 2026-05-02)
+-- =============================================
+create table if not exists profiles (
+  user_id              uuid primary key references auth.users(id) on delete cascade,
+  "firstName"          text,
+  "preferredLanguage"  text not null default 'auto',
+  "preferredCurrency"  text not null default 'EUR',
+  "onboardingCompleted" boolean not null default false,
+  "onboardingStep"     int not null default 0,
+  "createdAt"          timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+
+create policy "profiles_select" on profiles
+  for select using (auth.uid() = user_id);
+
+create policy "profiles_insert" on profiles
+  for insert with check (auth.uid() = user_id);
+
+create policy "profiles_update" on profiles
+  for update using (auth.uid() = user_id);
+
+create policy "profiles_delete" on profiles
+  for delete using (auth.uid() = user_id);
+
+create index if not exists profiles_user_id_idx on profiles(user_id);
