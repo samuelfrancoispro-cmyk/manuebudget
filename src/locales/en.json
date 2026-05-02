@@ -1,0 +1,115 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip this step",
+    "finish": "Go to my dashboard",
+    "loading": "Loading…",
+    "syncing": "Syncing data…",
+    "error": "An error occurred",
+    "confirm": "Confirm",
+    "close": "Close",
+    "allAccounts": "All accounts",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
+  },
+  "nav": {
+    "appName": "Budget",
+    "dashboard": "Dashboard",
+    "money": "Money",
+    "savings": "Savings & projects",
+    "reports": "CSV Reports",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Log out",
+    "toggleTheme": "Toggle theme",
+    "openMenu": "Open menu",
+    "close": "Close"
+  },
+  "auth": {
+    "signInDesc": "Sign in to your account",
+    "signUpDesc": "Create your account",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "password": "Password",
+    "passwordHint": "At least 6 characters.",
+    "submitSignIn": "Sign in",
+    "submitSignUp": "Create account",
+    "busy": "…",
+    "noAccount": "No account?",
+    "createAccount": "Create an account",
+    "alreadySignedUp": "Already registered?",
+    "goToSignIn": "Sign in",
+    "errorRequired": "Email and password are required",
+    "successSignIn": "Signed in successfully",
+    "successSignUp": "Account created"
+  },
+  "onboarding": {
+    "stepOf": "Step {{step}} of {{total}}",
+    "step1": {
+      "title": "Your profile",
+      "description": "A few details to personalise your experience.",
+      "welcome": "Welcome! A few minutes is all it takes to set up your dashboard.",
+      "firstName": "First name",
+      "firstNamePlaceholder": "Your first name",
+      "currency": "Preferred currency"
+    },
+    "step2": {
+      "title": "Your current accounts",
+      "description": "Add at least one current account to power your dashboard.",
+      "addAccount": "Add an account",
+      "accountName": "Account name",
+      "accountType": "Type",
+      "typePerso": "Personal",
+      "typeJoint": "Joint",
+      "balance": "Current balance (€)",
+      "minError": "Add at least one account to continue.",
+      "skipNote": "You can complete this in Settings at any time."
+    },
+    "step3": {
+      "title": "Your savings accounts",
+      "description": "Savings accounts, life insurance, bonds…",
+      "addAccount": "Add a savings account",
+      "accountName": "Account name",
+      "rate": "Annual rate (%)",
+      "balance": "Current balance (€)",
+      "skipNote": "You can complete this in Savings at any time."
+    },
+    "step4": {
+      "title": "Your investment accounts",
+      "description": "Stock market accounts, ETF portfolios…",
+      "addAccount": "Add an investment account",
+      "accountName": "Account name",
+      "balance": "Current value (€)",
+      "isinNote": "You can add your ISIN assets in My accounts.",
+      "skipNote": "You can complete this in Savings at any time."
+    },
+    "step5": {
+      "title": "Recurring income & expenses",
+      "description": "Salary, rent, subscriptions… things that happen every month.",
+      "revenues": "Income",
+      "expenses": "Expenses",
+      "addRevenue": "Add income",
+      "addExpense": "Add expense",
+      "label": "Label",
+      "amount": "Amount (€)",
+      "dayOfMonth": "Day of month",
+      "category": "Category",
+      "skipNote": "You can complete this in Recurring at any time."
+    },
+    "step6": {
+      "title": "Your savings goals",
+      "description": "Travel, car, emergency fund…",
+      "addObjectif": "Add a goal",
+      "name": "Goal name",
+      "target": "Target amount (€)",
+      "targetDate": "Target date (optional)",
+      "skipNote": "You can create goals in Savings at any time."
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "back": "Retour",
+    "next": "Suivant",
+    "skip": "Passer cette étape",
+    "finish": "Accéder à mon tableau de bord",
+    "loading": "Chargement…",
+    "syncing": "Synchronisation des données…",
+    "error": "Une erreur est survenue",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "allAccounts": "Tous les comptes",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre"
+  },
+  "nav": {
+    "appName": "Budget",
+    "dashboard": "Tableau de bord",
+    "money": "Argent",
+    "savings": "Épargne & projets",
+    "reports": "Rapports CSV",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "logout": "Se déconnecter",
+    "toggleTheme": "Changer le thème",
+    "openMenu": "Ouvrir le menu",
+    "close": "Fermer"
+  },
+  "auth": {
+    "signInDesc": "Connecte-toi à ton espace",
+    "signUpDesc": "Crée ton compte",
+    "email": "Email",
+    "emailPlaceholder": "ton@email.fr",
+    "password": "Mot de passe",
+    "passwordHint": "Au moins 6 caractères.",
+    "submitSignIn": "Se connecter",
+    "submitSignUp": "Créer le compte",
+    "busy": "…",
+    "noAccount": "Pas de compte ?",
+    "createAccount": "Créer un compte",
+    "alreadySignedUp": "Déjà inscrit ?",
+    "goToSignIn": "Se connecter",
+    "errorRequired": "Email et mot de passe requis",
+    "successSignIn": "Connexion réussie",
+    "successSignUp": "Compte créé"
+  },
+  "onboarding": {
+    "stepOf": "Étape {{step}} sur {{total}}",
+    "step1": {
+      "title": "Ton profil",
+      "description": "Quelques informations pour personnaliser ton expérience.",
+      "welcome": "Bienvenue ! Quelques minutes suffisent pour configurer ton tableau de bord.",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Ton prénom",
+      "currency": "Devise préférée"
+    },
+    "step2": {
+      "title": "Tes comptes courants",
+      "description": "Ajoute au moins un compte courant pour que ton tableau de bord fonctionne.",
+      "addAccount": "Ajouter un compte",
+      "accountName": "Nom du compte",
+      "accountType": "Type",
+      "typePerso": "Perso",
+      "typeJoint": "Joint",
+      "balance": "Solde actuel (€)",
+      "minError": "Ajoute au moins un compte pour continuer.",
+      "skipNote": "Tu pourras compléter ça dans Paramètres à tout moment."
+    },
+    "step3": {
+      "title": "Tes comptes épargne",
+      "description": "Livrets, assurance-vie, PEL…",
+      "addAccount": "Ajouter un compte épargne",
+      "accountName": "Nom du compte",
+      "rate": "Taux annuel (%)",
+      "balance": "Solde actuel (€)",
+      "skipNote": "Tu pourras compléter ça dans Épargne à tout moment."
+    },
+    "step4": {
+      "title": "Tes comptes bourse",
+      "description": "PEA, CTO, compte-titres…",
+      "addAccount": "Ajouter un compte bourse",
+      "accountName": "Nom du compte",
+      "balance": "Valeur actuelle (€)",
+      "isinNote": "Tu pourras ajouter tes actifs ISIN dans Mes comptes.",
+      "skipNote": "Tu pourras compléter ça dans Épargne à tout moment."
+    },
+    "step5": {
+      "title": "Tes revenus & charges récurrents",
+      "description": "Salaire, loyer, abonnements… ce qui revient chaque mois.",
+      "revenues": "Revenus",
+      "expenses": "Charges",
+      "addRevenue": "Ajouter un revenu",
+      "addExpense": "Ajouter une charge",
+      "label": "Libellé",
+      "amount": "Montant (€)",
+      "dayOfMonth": "Jour du mois",
+      "category": "Catégorie",
+      "skipNote": "Tu pourras compléter ça dans Récurrents à tout moment."
+    },
+    "step6": {
+      "title": "Tes objectifs d'épargne",
+      "description": "Voyage, voiture, fonds d'urgence…",
+      "addObjectif": "Ajouter un objectif",
+      "name": "Nom de l'objectif",
+      "target": "Montant cible (€)",
+      "targetDate": "Date cible (optionnel)",
+      "skipNote": "Tu pourras créer des objectifs dans Épargne à tout moment."
+    }
+  }
+}
