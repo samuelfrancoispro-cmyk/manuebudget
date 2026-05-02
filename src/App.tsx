@@ -9,13 +9,14 @@ import Parametres from "./pages/Parametres";
 import Aide from "./pages/Aide";
 import Rapports from "./pages/Rapports";
 import LoginPage from "./pages/Login";
+import Onboarding from "./pages/Onboarding";
 import { Toaster } from "./components/ui/sonner";
 import { useAuth } from "./lib/auth";
 import { useStore } from "./store/useStore";
 
 export default function App() {
   const { user, loading } = useAuth();
-  const { loaded, loadedUserId, loading: storeLoading, loadAll, clearLocal } = useStore();
+  const { loaded, loadedUserId, loading: storeLoading, loadAll, clearLocal, profile } = useStore();
 
   useEffect(() => {
     if (user && user.id !== loadedUserId && !storeLoading) {
@@ -39,6 +40,19 @@ export default function App() {
 
   if (!loaded || loadedUserId !== user.id) {
     return <SplashLoader label="Synchronisation des données…" />;
+  }
+
+  // Redirect to onboarding if not completed
+  if (profile && !profile.onboardingCompleted) {
+    return (
+      <>
+        <Routes>
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        </Routes>
+        <Toaster position="bottom-right" />
+      </>
+    );
   }
 
   return (
