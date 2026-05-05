@@ -16,7 +16,10 @@
     "close": "Fermer",
     "allAccounts": "Tous les comptes",
     "lightMode": "Mode clair",
-    "darkMode": "Mode sombre"
+    "darkMode": "Mode sombre",
+    "joint": "joint",
+    "yes": "Oui",
+    "no": "Non"
   },
   "nav": {
     "appName": "Budget",
@@ -111,5 +114,113 @@
       "targetDate": "Date cible (optionnel)",
       "skipNote": "Tu pourras créer des objectifs dans Épargne à tout moment."
     }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "description": "Vue d'ensemble de tes finances mensuelles.",
+    "prevSection": "Prévisionnel — récurrents du mois",
+    "realSection": "Réel — récurrents échus + transactions exceptionnelles",
+    "kpi": {
+      "prevRevenues": "Revenus prévus",
+      "prevExpenses": "Dépenses prévues",
+      "prevBalance": "Reste à vivre prévu",
+      "prevSavingsRate": "Taux d'épargne prévu : {{rate}}%",
+      "accountBalance": "Solde compte",
+      "cumulatedBalance": "Solde cumulé",
+      "accountCount": "{{count}} compte courant",
+      "accountCountPlural": "{{count}} comptes courants",
+      "realRevenues": "Rentrées réelles",
+      "realExpenses": "Dépenses réelles",
+      "realBalance": "Reste à vivre réel",
+      "realSavingsRate": "Taux d'épargne réel : {{rate}}%"
+    },
+    "evolution": {
+      "title": "Évolution du solde — 6 mois",
+      "allAccounts": "Tous les comptes courants"
+    },
+    "accountDetail": {
+      "title": "Détail par compte",
+      "description": "Solde actuel + reste à vivre du mois",
+      "remainingBalance": "Reste à vivre : {{amount}}"
+    },
+    "forecast": {
+      "title": "Prévisions sur 3 mois",
+      "description": "Récurrentes & virements automatiques uniquement",
+      "empty": "Aucune récurrence à venir.",
+      "revenues": "Revenus",
+      "expenses": "Dépenses"
+    },
+    "upcoming": {
+      "title": "Prochaines échéances",
+      "description": "5 prochaines récurrences à venir",
+      "empty": "Aucune récurrence active.",
+      "today": "aujourd'hui",
+      "tomorrow": "demain",
+      "inDays": "dans {{days}} j",
+      "defaultSavings": "épargne"
+    },
+    "categories": {
+      "title": "Répartition des dépenses",
+      "description": "Par catégorie pour le mois sélectionné",
+      "transfers": "Virements épargne",
+      "empty": "Aucune dépense ce mois-ci."
+    },
+    "objectives": {
+      "title": "Objectifs en cours",
+      "description": "Progression vers tes cibles",
+      "empty": "Aucun objectif pour le moment."
+    },
+    "savings": {
+      "title": "Épargne placée",
+      "description": "Total des comptes d'épargne (virements auto inclus)"
+    },
+    "lastTransactions": {
+      "title": "Dernières transactions",
+      "description": "5 plus récentes du mois (hors récurrentes)",
+      "empty": "Aucune transaction. Va dans Argent → Transactions pour en ajouter.",
+      "colDate": "Date",
+      "colCategory": "Catégorie",
+      "colDescription": "Description",
+      "colAmount": "Montant"
+    },
+    "recurring": {
+      "active": "Récurrentes actives",
+      "transfers": "Virements automatiques",
+      "none": "Aucune.",
+      "noneAlt": "Aucun.",
+      "more": "+ {{count}} autres"
+    }
+  },
+  "argent": {
+    "title": "Argent quotidien",
+    "description": "Tes comptes courants, tes transactions et tes charges récurrentes — tout au même endroit.",
+    "tabs": {
+      "accounts": "Comptes",
+      "transactions": "Transactions",
+      "recurring": "Récurrents"
+    }
+  },
+  "epargne": {
+    "title": "Épargne & projets",
+    "description": "Comptes d'épargne, objectifs, virements automatiques et simulations de projet.",
+    "tabs": {
+      "savings": "Épargne",
+      "objectives": "Objectifs",
+      "projects": "Projets",
+      "simulator": "Simulateur",
+      "transfers": "Virements auto"
+    }
+  },
+  "reports": {
+    "title": "Rapports CSV",
+    "description": "Importe un relevé bancaire CSV (toutes banques) et explore tes dépenses : camembert, top postes, pistes d'économies."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Comptes, catégories, sauvegarde et restauration."
+  },
+  "help": {
+    "title": "Aide",
+    "description": "Tutoriels et explications sur toutes les fonctionnalités de l'application."
   }
 }

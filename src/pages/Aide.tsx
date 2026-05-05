@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search, ChevronDown, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -492,6 +493,7 @@ const articles: Article[] = [
 ];
 
 export default function AidePage() {
+  const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
 
@@ -523,8 +525,8 @@ export default function AidePage() {
   return (
     <>
       <PageHeader
-        title="Aide"
-        description="Tutoriels et explications sur toutes les fonctionnalités de l'application."
+        title={t("help.title")}
+        description={t("help.description")}
       />
 
       <div className="relative mb-6">

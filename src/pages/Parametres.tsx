@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useStore } from "@/store/useStore";
 import type { Categorie, CompteCourant, TypeCompteCourant, TypeTransaction } from "@/types";
 import { formatEUR, todayISO } from "@/lib/utils";
@@ -28,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ParametresPage() {
+  const { t } = useTranslation();
   const store = useStore();
 
   // Catégories
@@ -98,8 +100,8 @@ export default function ParametresPage() {
   return (
     <>
       <PageHeader
-        title="Paramètres"
-        description="Comptes, catégories, sauvegarde et restauration."
+        title={t("settings.title")}
+        description={t("settings.description")}
       />
 
       <div className="space-y-6">

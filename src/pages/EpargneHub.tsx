@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useStore } from "@/store/useStore";
 import { totalEpargne } from "@/lib/calculs";
 import { formatEUR } from "@/lib/utils";
@@ -14,6 +15,7 @@ const TABS = ["epargne", "virements", "simulateur"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function EpargneHub() {
+  const { t } = useTranslation();
   const { comptes, mouvements, virementsRecurrents, actifs } = useStore();
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
@@ -33,8 +35,8 @@ export default function EpargneHub() {
   return (
     <>
       <PageHeader
-        title="Épargne & projets"
-        description="Comptes d'épargne, objectifs, virements automatiques et simulations de projet."
+        title={t("epargne.title")}
+        description={t("epargne.description")}
         action={
           <Badge variant="outline" className="px-3 py-1.5 text-base">
             Total épargne :{" "}

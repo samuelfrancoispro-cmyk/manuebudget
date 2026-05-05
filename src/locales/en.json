@@ -16,7 +16,10 @@
     "close": "Close",
     "allAccounts": "All accounts",
     "lightMode": "Light mode",
-    "darkMode": "Dark mode"
+    "darkMode": "Dark mode",
+    "joint": "joint",
+    "yes": "Yes",
+    "no": "No"
   },
   "nav": {
     "appName": "Budget",
@@ -111,5 +114,113 @@
       "targetDate": "Target date (optional)",
       "skipNote": "You can create goals in Savings at any time."
     }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Monthly financial overview.",
+    "prevSection": "Forecast — monthly recurring items",
+    "realSection": "Actual — due recurring items + one-off transactions",
+    "kpi": {
+      "prevRevenues": "Forecast income",
+      "prevExpenses": "Forecast expenses",
+      "prevBalance": "Forecast balance",
+      "prevSavingsRate": "Forecast savings rate: {{rate}}%",
+      "accountBalance": "Account balance",
+      "cumulatedBalance": "Cumulated balance",
+      "accountCount": "{{count}} current account",
+      "accountCountPlural": "{{count}} current accounts",
+      "realRevenues": "Actual income",
+      "realExpenses": "Actual expenses",
+      "realBalance": "Actual balance",
+      "realSavingsRate": "Actual savings rate: {{rate}}%"
+    },
+    "evolution": {
+      "title": "Balance evolution — 6 months",
+      "allAccounts": "All current accounts"
+    },
+    "accountDetail": {
+      "title": "Per account breakdown",
+      "description": "Current balance + monthly remaining",
+      "remainingBalance": "Remaining: {{amount}}"
+    },
+    "forecast": {
+      "title": "3-month forecast",
+      "description": "Recurring items & automatic transfers only",
+      "empty": "No upcoming recurring items.",
+      "revenues": "Income",
+      "expenses": "Expenses"
+    },
+    "upcoming": {
+      "title": "Upcoming due dates",
+      "description": "Next 5 recurring items",
+      "empty": "No active recurring items.",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "inDays": "in {{days}} d",
+      "defaultSavings": "savings"
+    },
+    "categories": {
+      "title": "Expense breakdown",
+      "description": "By category for the selected month",
+      "transfers": "Savings transfers",
+      "empty": "No expenses this month."
+    },
+    "objectives": {
+      "title": "Current goals",
+      "description": "Progress towards your targets",
+      "empty": "No goals yet."
+    },
+    "savings": {
+      "title": "Total savings",
+      "description": "All savings accounts (auto transfers included)"
+    },
+    "lastTransactions": {
+      "title": "Latest transactions",
+      "description": "5 most recent this month (excluding recurring)",
+      "empty": "No transactions. Go to Money → Transactions to add some.",
+      "colDate": "Date",
+      "colCategory": "Category",
+      "colDescription": "Description",
+      "colAmount": "Amount"
+    },
+    "recurring": {
+      "active": "Active recurring items",
+      "transfers": "Automatic transfers",
+      "none": "None.",
+      "noneAlt": "None.",
+      "more": "+ {{count}} more"
+    }
+  },
+  "argent": {
+    "title": "Daily money",
+    "description": "Your current accounts, transactions and recurring charges — all in one place.",
+    "tabs": {
+      "accounts": "Accounts",
+      "transactions": "Transactions",
+      "recurring": "Recurring"
+    }
+  },
+  "epargne": {
+    "title": "Savings & projects",
+    "description": "Savings accounts, goals, automatic transfers and project simulations.",
+    "tabs": {
+      "savings": "Savings",
+      "objectives": "Goals",
+      "projects": "Projects",
+      "simulator": "Simulator",
+      "transfers": "Auto transfers"
+    }
+  },
+  "reports": {
+    "title": "CSV Reports",
+    "description": "Import a CSV bank statement (any bank) and explore your expenses: pie chart, top categories, savings opportunities."
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Accounts, categories, backup and restore."
+  },
+  "help": {
+    "title": "Help",
+    "description": "Tutorials and explanations for all application features."
   }
 }

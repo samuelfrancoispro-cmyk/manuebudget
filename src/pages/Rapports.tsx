@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Upload, Trash2, FileSpreadsheet, FileText, Loader2, Settings2, Database } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import PageHeader from "@/components/PageHeader";
 import RapportAnalytique from "@/components/RapportAnalytique";
 import ImportMappingDialog from "@/components/ImportMappingDialog";
@@ -37,6 +38,7 @@ import { formatEUR, monthLabel } from "@/lib/utils";
 const CONFIDENCE_OK = 0.8;
 
 export default function Rapports() {
+  const { t } = useTranslation();
   const {
     rapports,
     rapportLignes,
@@ -245,8 +247,8 @@ export default function Rapports() {
   return (
     <>
       <PageHeader
-        title="Rapports CSV"
-        description="Importe un relevé bancaire CSV (toutes banques) et explore tes dépenses : camembert, top postes, pistes d'économies."
+        title={t("reports.title")}
+        description={t("reports.description")}
         action={
           <div className="flex gap-2">
             <Select value={filtreCompte} onValueChange={setFiltreCompte}>

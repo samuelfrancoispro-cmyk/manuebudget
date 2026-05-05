@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Comptes from "./Comptes";
@@ -9,6 +10,7 @@ const TABS = ["comptes", "transactions", "recurrents"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ArgentPage() {
+  const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const raw = params.get("tab");
   const initial: Tab = TABS.includes(raw as Tab) ? (raw as Tab) : "comptes";
@@ -22,8 +24,8 @@ export default function ArgentPage() {
   return (
     <>
       <PageHeader
-        title="Argent quotidien"
-        description="Tes comptes courants, tes transactions et tes charges récurrentes — tout au même endroit."
+        title={t("argent.title")}
+        description={t("argent.description")}
       />
 
       <Tabs value={initial} onValueChange={setTab}>

@@ -23,6 +23,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useStore } from "@/store/useStore";
 import {
   totauxMois,
@@ -56,6 +57,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MonthPicker } from "@/components/ui/month-picker";
 import {
   Table,
   TableBody,
@@ -86,6 +88,7 @@ function moisSuiv(mois: string, n: number = 1): string {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     transactions,
@@ -101,11 +104,14 @@ export default function Dashboard() {
   const [mois, setMois] = useState<string>(monthKey(new Date().toISOString()));
   const [compteId, setCompteId] = useState<string>("all");
 
-  const moisListe = useMemo(() => {
-    const dispos = moisDisponibles(transactions, recurrentes, virementsRecurrents);
-    if (!dispos.includes(mois)) dispos.unshift(mois);
-    return dispos;
-  }, [transactions, recurrentes, virementsRecurrents, mois]);
+  const moisAvecDonnees = useMemo(() => {
+    return new Set(moisDisponibles(transactions, recurrentes, virementsRecurrents));
+  }, [transactions, recurrentes, virementsRecurrents]);
+
+  const minMois = useMemo(() => {
+    const dispos = Array.from(moisAvecDonnees).sort();
+    return dispos[0] ?? monthKey(new Date().toISOString());
+  }, [moisAvecDonnees]);
 
   const compteFiltre = compteId === "all" ? undefined : compteId;
 
@@ -164,7 +170,7 @@ export default function Dashboard() {
   const repartition = useMemo(() => {
     const arr = Array.from(parCat.entries()).map(([catId, montant]) => {
       if (catId === "_virement") {
-        return { nom: "Virements épargne", couleur: "#8b5cf6", montant };
+        return { nom: t("dashboard.categories.transfers"), couleur: "#8b5cf6", montant };
       }
       const cat = categories.find((c) => c.id === catId);
       return {
@@ -280,7 +286,7 @@ export default function Dashboard() {
       items.push({
         key: `v-${v.id}`,
         date: next,
-        libelle: `${v.libelle} → ${ce?.nom ?? "épargne"}`,
+        libelle: `${v.libelle} → ${ce?.nom ?? t("dashboard.upcoming.defaultSavings")}`,
         type: "virement",
         montant: v.montant,
         compte: cc?.nom,
@@ -300,8 +306,8 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader
-        title="Tableau de bord"
-        description="Vue d'ensemble de tes finances mensuelles."
+        title={t("dashboard.title")}
+        description={t("dashboard.description")}
         action={
           <div className="flex flex-wrap gap-2">
             <Select value={compteId} onValueChange={setCompteId}>
@@ -309,7 +315,7 @@ export default function Dashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les comptes</SelectItem>
+                <SelectItem value="all">{t("common.allAccounts")}</SelectItem>
                 {comptesCourants.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.nom} {c.type === "joint" ? "(joint)" : ""}
@@ -317,53 +323,49 @@ export default function Dashboard() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={mois} onValueChange={setMois}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {moisListe.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {monthLabel(m)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MonthPicker
+              value={mois}
+              onChange={setMois}
+              availableMonths={moisAvecDonnees}
+              minMonth={minMois}
+            />
           </div>
         }
       />
 
       {/* Bloc prévisionnel */}
       <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Prévisionnel — récurrents du mois
+        {t("dashboard.prevSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-          titre="Revenus prévus"
+          titre={t("dashboard.kpi.prevRevenues")}
           valeur={formatEUR(totauxPrev.revenus)}
         />
         <Kpi
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
-          titre="Dépenses prévues"
+          titre={t("dashboard.kpi.prevExpenses")}
           valeur={formatEUR(totauxPrev.depenses)}
         />
         <Kpi
           icon={<Coins className="h-4 w-4" />}
-          titre="Reste à vivre prévu"
+          titre={t("dashboard.kpi.prevBalance")}
           valeur={formatEUR(totauxPrev.solde)}
           accent={totauxPrev.solde >= 0 ? "positif" : "negatif"}
-          extra={totauxPrev.revenus > 0 ? `Taux d'épargne prévu : ${tauxEpargnePrev.toFixed(1)}%` : undefined}
+          extra={totauxPrev.revenus > 0 ? t("dashboard.kpi.prevSavingsRate", { rate: tauxEpargnePrev.toFixed(1) }) : undefined}
         />
         <Kpi
           icon={<Wallet className="h-4 w-4" />}
-          titre="Solde compte"
+          titre={t("dashboard.kpi.accountBalance")}
           valeur={formatEUR(soldeCompteSelection)}
           accent={soldeCompteSelection >= 0 ? "positif" : "negatif"}
           extra={
             compteFiltre
-              ? "Solde cumulé"
-              : `${comptesCourants.length} compte${comptesCourants.length > 1 ? "s" : ""} courant${comptesCourants.length > 1 ? "s" : ""}`
+              ? t("dashboard.kpi.cumulatedBalance")
+              : comptesCourants.length > 1
+                ? t("dashboard.kpi.accountCountPlural", { count: comptesCourants.length })
+                : t("dashboard.kpi.accountCount", { count: comptesCourants.length })
           }
           onClick={() => navigate("/argent?tab=comptes")}
         />
@@ -371,29 +373,29 @@ export default function Dashboard() {
 
       {/* Bloc réel */}
       <div className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Réel — récurrents échus + transactions exceptionnelles
+        {t("dashboard.realSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Kpi
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-          titre="Rentrées réelles"
+          titre={t("dashboard.kpi.realRevenues")}
           valeur={formatEUR(totaux.revenus)}
           comparaison={delta(totaux.revenus, totauxPrec.revenus)}
           onClick={() => navigate("/argent?tab=transactions")}
         />
         <Kpi
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
-          titre="Dépenses réelles"
+          titre={t("dashboard.kpi.realExpenses")}
           valeur={formatEUR(totaux.depenses)}
           comparaison={delta(totaux.depenses, totauxPrec.depenses, true)}
           onClick={() => navigate("/argent?tab=transactions")}
         />
         <Kpi
           icon={<Coins className="h-4 w-4" />}
-          titre="Reste à vivre réel"
+          titre={t("dashboard.kpi.realBalance")}
           valeur={formatEUR(totaux.solde)}
           accent={totaux.solde >= 0 ? "positif" : "negatif"}
-          extra={totaux.revenus > 0 ? `Taux d'épargne réel : ${tauxEpargneReel.toFixed(1)}%` : undefined}
+          extra={totaux.revenus > 0 ? t("dashboard.kpi.realSavingsRate", { rate: tauxEpargneReel.toFixed(1) }) : undefined}
           comparaison={delta(totaux.solde, totauxPrec.solde)}
         />
       </div>
@@ -404,11 +406,11 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base">Évolution du solde — 6 mois</CardTitle>
+                <CardTitle className="text-base">{t("dashboard.evolution.title")}</CardTitle>
                 <CardDescription>
                   {compteFiltre
                     ? comptesCourants.find((c) => c.id === compteFiltre)?.nom
-                    : "Tous les comptes courants"}
+                    : t("dashboard.evolution.allAccounts")}
                 </CardDescription>
               </div>
             </div>
@@ -439,13 +441,13 @@ export default function Dashboard() {
       {compteFiltre === undefined && comptesCourants.length > 1 && (
         <Card className="mt-4">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Détail par compte</CardTitle>
-            <CardDescription>Solde actuel + reste à vivre du mois</CardDescription>
+            <CardTitle className="text-base">{t("dashboard.accountDetail.title")}</CardTitle>
+            <CardDescription>{t("dashboard.accountDetail.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 sm:grid-cols-2">
               {soldesComptes.map(({ compte, solde }) => {
-                const t = totauxMois(
+                const totauxCompte = totauxMois(
                   transactions,
                   mois,
                   recurrentes,
@@ -465,12 +467,12 @@ export default function Dashboard() {
                         {compte.nom}
                         {compte.type === "joint" && (
                           <Badge variant="outline" className="text-xs">
-                            joint
+                            {t("common.joint")}
                           </Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Reste à vivre : {formatEUR(t.solde)}
+                        {t("dashboard.accountDetail.remainingBalance", { amount: formatEUR(totauxCompte.solde) })}
                       </div>
                     </div>
                     <div
@@ -491,16 +493,16 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4" /> Prévisions sur 3 mois
+              <CalendarClock className="h-4 w-4" /> {t("dashboard.forecast.title")}
             </CardTitle>
             <CardDescription>
-              Récurrentes & virements automatiques uniquement
+              {t("dashboard.forecast.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {previsions.every((p) => p.revenus === 0 && p.depenses === 0) ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Aucune récurrence à venir.
+                {t("dashboard.forecast.empty")}
               </p>
             ) : (
               <>
@@ -514,8 +516,8 @@ export default function Dashboard() {
                         tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                       />
                       <RTooltip formatter={(v) => formatEUR(Number(v))} />
-                      <Bar dataKey="revenus" fill="#10b981" name="Revenus" />
-                      <Bar dataKey="depenses" fill="#ef4444" name="Dépenses" />
+                      <Bar dataKey="revenus" fill="#10b981" name={t("dashboard.forecast.revenues")} />
+                      <Bar dataKey="depenses" fill="#ef4444" name={t("dashboard.forecast.expenses")} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -539,14 +541,14 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Repeat className="h-4 w-4" /> Prochaines échéances
+              <Repeat className="h-4 w-4" /> {t("dashboard.upcoming.title")}
             </CardTitle>
-            <CardDescription>5 prochaines récurrences à venir</CardDescription>
+            <CardDescription>{t("dashboard.upcoming.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             {prochaines.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Aucune récurrence active.
+                {t("dashboard.upcoming.empty")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -591,7 +593,11 @@ export default function Dashboard() {
                           <div className="text-sm font-medium">{p.libelle}</div>
                           <div className="text-xs text-muted-foreground">
                             {formatDate(p.date)} ·{" "}
-                            {dans === 0 ? "aujourd'hui" : dans === 1 ? "demain" : `dans ${dans} j`}
+                            {dans === 0
+                              ? t("dashboard.upcoming.today")
+                              : dans === 1
+                                ? t("dashboard.upcoming.tomorrow")
+                                : t("dashboard.upcoming.inDays", { days: dans })}
                             {p.compte ? ` · ${p.compte}` : ""}
                           </div>
                         </div>
@@ -619,13 +625,13 @@ export default function Dashboard() {
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Répartition des dépenses</CardTitle>
-            <CardDescription>Par catégorie pour le mois sélectionné</CardDescription>
+            <CardTitle>{t("dashboard.categories.title")}</CardTitle>
+            <CardDescription>{t("dashboard.categories.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             {repartition.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Aucune dépense ce mois-ci.
+                {t("dashboard.categories.empty")}
               </p>
             ) : (
               <div className="space-y-3">
@@ -662,13 +668,13 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Objectifs en cours</CardTitle>
-            <CardDescription>Progression vers tes cibles</CardDescription>
+            <CardTitle>{t("dashboard.objectives.title")}</CardTitle>
+            <CardDescription>{t("dashboard.objectives.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             {objectifs.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Aucun objectif pour le moment.
+                {t("dashboard.objectives.empty")}
               </p>
             ) : (
               <div className="space-y-4">
@@ -701,8 +707,8 @@ export default function Dashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Épargne placée</CardTitle>
-              <CardDescription>Total des comptes d'épargne (virements auto inclus)</CardDescription>
+              <CardTitle>{t("dashboard.savings.title")}</CardTitle>
+              <CardDescription>{t("dashboard.savings.description")}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <PiggyBank className="h-4 w-4 text-muted-foreground" />
@@ -714,22 +720,22 @@ export default function Dashboard() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Dernières transactions</CardTitle>
-          <CardDescription>5 plus récentes du mois (hors récurrentes)</CardDescription>
+          <CardTitle>{t("dashboard.lastTransactions.title")}</CardTitle>
+          <CardDescription>{t("dashboard.lastTransactions.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {dernieres.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Aucune transaction. Va dans Argent → Transactions pour en ajouter.
+              {t("dashboard.lastTransactions.empty")}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
+                  <TableHead>{t("dashboard.lastTransactions.colDate")}</TableHead>
+                  <TableHead>{t("dashboard.lastTransactions.colCategory")}</TableHead>
+                  <TableHead>{t("dashboard.lastTransactions.colDescription")}</TableHead>
+                  <TableHead className="text-right">{t("dashboard.lastTransactions.colAmount")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -771,7 +777,7 @@ export default function Dashboard() {
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Récurrentes actives</CardTitle>
+              <CardTitle className="text-sm">{t("dashboard.recurring.active")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-xs text-muted-foreground">
               {recurrentes.slice(0, 3).map((r) => (
@@ -781,14 +787,14 @@ export default function Dashboard() {
                 </div>
               ))}
               {recurrentes.length > 3 && (
-                <div className="pt-1 italic">+ {recurrentes.length - 3} autres</div>
+                <div className="pt-1 italic">{t("dashboard.recurring.more", { count: recurrentes.length - 3 })}</div>
               )}
-              {recurrentes.length === 0 && <div className="italic">Aucune.</div>}
+              {recurrentes.length === 0 && <div className="italic">{t("dashboard.recurring.none")}</div>}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Virements automatiques</CardTitle>
+              <CardTitle className="text-sm">{t("dashboard.recurring.transfers")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-xs text-muted-foreground">
               {virementsRecurrents.slice(0, 3).map((v) => (
@@ -798,9 +804,9 @@ export default function Dashboard() {
                 </div>
               ))}
               {virementsRecurrents.length > 3 && (
-                <div className="pt-1 italic">+ {virementsRecurrents.length - 3} autres</div>
+                <div className="pt-1 italic">{t("dashboard.recurring.more", { count: virementsRecurrents.length - 3 })}</div>
               )}
-              {virementsRecurrents.length === 0 && <div className="italic">Aucun.</div>}
+              {virementsRecurrents.length === 0 && <div className="italic">{t("dashboard.recurring.noneAlt")}</div>}
             </CardContent>
           </Card>
         </div>
