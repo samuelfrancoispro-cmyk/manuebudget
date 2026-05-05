@@ -22,7 +22,7 @@
     "no": "No"
   },
   "nav": {
-    "appName": "Budget",
+    "appName": "Fluxo",
     "dashboard": "Dashboard",
     "money": "Money",
     "savings": "Savings & projects",
@@ -222,5 +222,18 @@
   "help": {
     "title": "Help",
     "description": "Tutorials and explanations for all application features."
+  },
+  "landing": {
+    "tagline": "Budget management, made simple.",
+    "subtitle": "Track your accounts, recurring expenses and savings in one place. Free to get started.",
+    "feature1": "All-in-one",
+    "feature1Desc": "Accounts, recurring, savings",
+    "feature2": "Simple",
+    "feature2Desc": "5-minute onboarding",
+    "feature3": "Secure",
+    "feature3Desc": "Encrypted data, no bank connection",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "footer": "© 2026 Fluxo"
   }
 }

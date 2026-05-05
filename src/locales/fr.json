@@ -22,7 +22,7 @@
     "no": "Non"
   },
   "nav": {
-    "appName": "Budget",
+    "appName": "Fluxo",
     "dashboard": "Tableau de bord",
     "money": "Argent",
     "savings": "Épargne & projets",
@@ -222,5 +222,18 @@
   "help": {
     "title": "Aide",
     "description": "Tutoriels et explications sur toutes les fonctionnalités de l'application."
+  },
+  "landing": {
+    "tagline": "Gérez votre budget, simplement.",
+    "subtitle": "Suivez vos comptes, dépenses et épargne en un seul endroit. Gratuit pour commencer.",
+    "feature1": "Tout en un",
+    "feature1Desc": "Comptes, récurrents, épargne",
+    "feature2": "Simple",
+    "feature2Desc": "Onboarding en 5 minutes",
+    "feature3": "Sécurisé",
+    "feature3Desc": "Données chiffrées, aucune banque connectée",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "footer": "© 2026 Fluxo"
   }
 }
