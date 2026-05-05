@@ -9,6 +9,7 @@ import Parametres from "./pages/Parametres";
 import Aide from "./pages/Aide";
 import Rapports from "./pages/Rapports";
 import LoginPage from "./pages/Login";
+import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import { Toaster } from "./components/ui/sonner";
 import { useAuth } from "./lib/auth";
@@ -32,7 +33,11 @@ export default function App() {
   if (!user) {
     return (
       <>
-        <LoginPage />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
         <Toaster position="bottom-right" />
       </>
     );
