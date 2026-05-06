@@ -4,61 +4,90 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 47.4% 11.2%;
-    --radius: 0.5rem;
+    /* Brand tokens — Notion warm paper mono (mode clair) */
+    --paper: 47 27% 98%;             /* #FAFAF7 */
+    --surface: 40 18% 93%;            /* #F1EFEA */
+    --surface-strong: 38 14% 83%;     /* #D9D6CF */
+    --ink: 0 0% 10%;                  /* #1A1A1A */
+    --ink-muted: 38 6% 39%;           /* #6B6760 */
+    --border-strong: 0 0% 10% / 0.14;
+    --positive: 138 32% 27%;          /* #2F5D3D */
+    --negative: 0 45% 33%;            /* #7A2E2E */
+    --warning-bg: 39 64% 90%;         /* #F5EBD9 */
+    --warning-text: 38 59% 26%;       /* #6B4F1C */
+    --info-bg: 60 13% 90%;            /* #E8E8E0 */
+    --info-text: 51 5% 22%;           /* #3A3A33 */
+
+    /* Rétro-compat shadcn — mappées sur les brand tokens */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--paper);
+    --card-foreground: var(--ink);
+    --popover: var(--paper);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--surface);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface);
+    --accent-foreground: var(--ink);
+    --destructive: var(--negative);
+    --destructive-foreground: var(--paper);
+    --success: var(--positive);
+    --success-foreground: var(--paper);
+    --border: 0 0% 10% / 0.08;
+    --input: 0 0% 10% / 0.12;
+    --ring: var(--ink);
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222.2 47.4% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 47.4% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 47.4% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
-}
+    /* Brand tokens — miroir sourd (mode sombre) */
+    --paper: 30 12% 6%;               /* #0F0E0C */
+    --surface: 36 9% 9%;              /* #1A1916 */
+    --surface-strong: 33 9% 13%;      /* #262420 */
+    --ink: 39 17% 91%;                /* #EDEAE3 */
+    --ink-muted: 36 8% 57%;           /* #9A9388 */
+    --border-strong: 39 17% 91% / 0.14;
+    --positive: 138 22% 57%;          /* #7AA98A */
+    --negative: 0 39% 63%;            /* #C57D7D */
+    --warning-bg: 36 38% 16%;         /* #3A2E1A */
+    --warning-text: 39 67% 73%;       /* #E5C589 */
+    --info-bg: 40 16% 12%;            /* #222018 */
+    --info-text: 38 11% 75%;          /* #C5C0B5 */
 
-@layer base {
+    /* Rétro-compat shadcn dark */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--paper);
+    --card-foreground: var(--ink);
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--surface);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface-strong);
+    --accent-foreground: var(--ink);
+    --destructive: var(--negative);
+    --destructive-foreground: var(--paper);
+    --success: var(--positive);
+    --success-foreground: var(--paper);
+    --border: 39 17% 91% / 0.08;
+    --input: 39 17% 91% / 0.12;
+    --ring: var(--ink);
+  }
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
   }
 }
