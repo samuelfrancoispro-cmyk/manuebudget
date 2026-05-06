@@ -530,7 +530,7 @@ export default function AidePage() {
       />
 
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -541,7 +541,7 @@ export default function AidePage() {
 
       {filtres.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+          <CardContent className="py-12 text-center text-sm text-ink-muted">
             <BookOpen className="mx-auto mb-2 h-6 w-6 opacity-50" />
             Aucun article ne correspond à « {q} ». Essaie un autre mot-clé.
           </CardContent>
@@ -550,7 +550,7 @@ export default function AidePage() {
         <div className="space-y-6">
           {groupes.map(([cat, list]) => (
             <section key={cat}>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
                 {cat}
               </h2>
               <div className="space-y-2">
@@ -561,7 +561,7 @@ export default function AidePage() {
                       <button
                         type="button"
                         onClick={() => setOpen(open === a.id ? null : a.id)}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-accent/50"
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface/50"
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{a.titre}</span>
@@ -571,7 +571,7 @@ export default function AidePage() {
                         </div>
                         <ChevronDown
                           className={cn(
-                            "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                            "h-4 w-4 shrink-0 text-ink-muted transition-transform",
                             ouvert && "rotate-180"
                           )}
                         />
@@ -583,7 +583,7 @@ export default function AidePage() {
                               {bloc.sous && (
                                 <div className="mb-1 font-medium">{bloc.sous}</div>
                               )}
-                              <p className="whitespace-pre-line text-muted-foreground">
+                              <p className="whitespace-pre-line text-ink-muted">
                                 {bloc.texte}
                               </p>
                             </div>
