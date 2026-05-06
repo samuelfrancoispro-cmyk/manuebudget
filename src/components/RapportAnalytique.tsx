@@ -32,6 +32,10 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const CHART_POSITIVE = "hsl(var(--positive))";
+const CHART_NEGATIVE = "hsl(var(--negative))";
+const CHART_MUTED = "hsl(var(--ink-muted))";
+
 interface Props {
   rapport: RapportCSV;
   lignes: RapportLigne[];
@@ -64,7 +68,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
       {/* Header KPIs */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-ink-muted">
             {compte?.nom ?? "Compte inconnu"} • {monthLabel(rapport.mois)} •{" "}
             {rapport.nbLignes} opérations
           </div>
@@ -117,7 +121,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
               </CardHeader>
               <CardContent>
                 {dataPie.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
+                  <p className="py-8 text-center text-sm text-ink-muted">
                     Aucune dépense.
                   </p>
                 ) : (
@@ -155,7 +159,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
               </CardHeader>
               <CardContent>
                 {dataBar.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
+                  <p className="py-8 text-center text-sm text-ink-muted">
                     Aucune dépense.
                   </p>
                 ) : (
@@ -216,13 +220,13 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
                             {c.categorie}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-right text-ink-muted">
                           {c.nbOperations}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           {formatEUR(c.total)}
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-right text-ink-muted">
                           {pct.toFixed(1)}%
                         </TableCell>
                       </TableRow>
@@ -242,7 +246,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
             </CardHeader>
             <CardContent>
               {dataEvolution.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
+                <p className="py-8 text-center text-sm text-ink-muted">
                   Aucune donnée.
                 </p>
               ) : (
@@ -261,14 +265,14 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
                         type="monotone"
                         dataKey="debit"
                         name="Débits"
-                        stroke="#ef4444"
+                        stroke={CHART_NEGATIVE}
                         strokeWidth={2}
                       />
                       <Line
                         type="monotone"
                         dataKey="credit"
                         name="Crédits"
-                        stroke="#10b981"
+                        stroke={CHART_POSITIVE}
                         strokeWidth={2}
                       />
                     </LineChart>
@@ -286,7 +290,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
             </CardHeader>
             <CardContent>
               {analyse.topDepenses.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
+                <p className="py-8 text-center text-sm text-ink-muted">
                   Aucune dépense.
                 </p>
               ) : (
@@ -302,11 +306,11 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
                   <TableBody>
                     {analyse.topDepenses.map((t, i) => (
                       <TableRow key={i}>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="text-ink-muted">
                           {formatDate(t.date)}
                         </TableCell>
                         <TableCell className="font-medium">{t.libelle}</TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="text-ink-muted">
                           {t.categorie ?? "—"}
                         </TableCell>
                         <TableCell className="text-right font-medium text-rose-600">
@@ -331,7 +335,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
             </CardHeader>
             <CardContent>
               {analyse.abonnementsSuspects.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
+                <p className="py-8 text-center text-sm text-ink-muted">
                   Aucun abonnement détecté sur cette période.
                 </p>
               ) : (
@@ -351,7 +355,7 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
                         <TableCell className="text-right">
                           <Badge variant="outline">{a.occurrences}×</Badge>
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-right text-ink-muted">
                           {formatEUR(a.montant)}
                         </TableCell>
                         <TableCell className="text-right font-medium">
@@ -382,12 +386,12 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold">{p.titre}</div>
-                    <div className="mt-1 text-sm text-muted-foreground">
+                    <div className="mt-1 text-sm text-ink-muted">
                       {p.description}
                     </div>
                     {p.gainEstime !== undefined && (
                       <div className="mt-2 text-sm">
-                        <span className="text-muted-foreground">Gain potentiel : </span>
+                        <span className="text-ink-muted">Gain potentiel : </span>
                         <span className="font-medium text-emerald-600">
                           ~ {formatEUR(p.gainEstime)}
                         </span>

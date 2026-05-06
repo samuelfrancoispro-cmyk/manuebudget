@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from "react";
-import { Upload, Trash2, FileSpreadsheet, FileText, Loader2, Settings2, Database } from "lucide-react";
+import { Upload, Trash2, FileText, Loader2, Settings2, Database } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import PageHeader from "@/components/PageHeader";
 import RapportAnalytique from "@/components/RapportAnalytique";
 import ImportMappingDialog from "@/components/ImportMappingDialog";
+import { EmptyState } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -293,7 +294,7 @@ export default function Rapports() {
           </CardHeader>
           <CardContent className="p-2">
             {rapportsFiltres.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              <div className="px-4 py-8 text-center text-sm text-ink-muted">
                 Aucun rapport. Clique sur « Importer CSV » pour commencer.
               </div>
             ) : (
@@ -307,17 +308,17 @@ export default function Rapports() {
                         onClick={() => setSelectedId(r.id)}
                         className={`group w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
                           active
-                            ? "border-primary bg-primary/5"
-                            : "border-transparent hover:bg-accent"
+                            ? "border-ink bg-ink/5"
+                            : "border-transparent hover:bg-surface"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <FileText className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
                               <span className="truncate font-medium">{r.nom}</span>
                             </div>
-                            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
                               <Badge variant="outline" className="text-[10px]">
                                 {monthLabel(r.mois)}
                               </Badge>
@@ -342,7 +343,7 @@ export default function Rapports() {
                               e.stopPropagation();
                               handleDelete(r.id);
                             }}
-                            className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-rose-100 hover:text-rose-600 group-hover:opacity-100 dark:hover:bg-rose-950"
+                            className="rounded p-1 text-ink-muted opacity-0 transition-opacity hover:bg-rose-100 hover:text-rose-600 group-hover:opacity-100 dark:hover:bg-rose-950"
                             title="Supprimer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -366,12 +367,11 @@ export default function Rapports() {
             />
           ) : (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <FileSpreadsheet className="mb-3 h-10 w-10 text-muted-foreground" />
-                <div className="text-base font-medium">Sélectionne un rapport</div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  Ou importe un nouveau CSV pour démarrer l'analyse.
-                </div>
+              <CardContent className="py-16">
+                <EmptyState
+                  title="Sélectionne un rapport"
+                  description="Ou importe un nouveau CSV pour démarrer l'analyse."
+                />
               </CardContent>
             </Card>
           )}
@@ -399,7 +399,7 @@ export default function Rapports() {
 
           <div className="space-y-3">
             {pendingPreview && (
-              <div className="rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="rounded-md border bg-surface/50 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-medium truncate">{pendingFile?.name}</div>
                   {matchedProfileName && (
@@ -409,7 +409,7 @@ export default function Rapports() {
                     </Badge>
                   )}
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
+                <div className="mt-1 text-xs text-ink-muted">
                   {pendingPreview.nbLignes} opérations • Débits −
                   {formatEUR(pendingPreview.debit)} • Crédits +
                   {formatEUR(pendingPreview.credit)}
@@ -442,7 +442,7 @@ export default function Rapports() {
                 onChange={(e) => setPendingMois(e.target.value)}
                 placeholder="2026-04"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-ink-muted">
                 Format : YYYY-MM (détecté automatiquement)
               </p>
             </div>
@@ -527,7 +527,7 @@ function ProfilesDialog({
         </DialogHeader>
 
         {profiles.length === 0 ? (
-          <div className="py-8 text-center text-sm text-muted-foreground">
+          <div className="py-8 text-center text-sm text-ink-muted">
             Aucun profil enregistré.
             <br />
             Importe un CSV et coche « Sauvegarder comme profil ».
@@ -543,7 +543,7 @@ function ProfilesDialog({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{p.nom}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-ink-muted">
                       {m.amountStrategy === "debit_credit" ? "Débit/Crédit séparés" : "Montant signé"}
                       {" • "}
                       {m.dateFormat}
