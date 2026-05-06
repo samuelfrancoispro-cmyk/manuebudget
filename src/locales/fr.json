@@ -226,14 +226,57 @@
   "landing": {
     "tagline": "Gérez votre budget, simplement.",
     "subtitle": "Suivez vos comptes, dépenses et épargne en un seul endroit. Gratuit pour commencer.",
-    "feature1": "Tout en un",
-    "feature1Desc": "Comptes, récurrents, épargne",
-    "feature2": "Simple",
-    "feature2Desc": "Onboarding en 5 minutes",
-    "feature3": "Sécurisé",
-    "feature3Desc": "Données chiffrées, aucune banque connectée",
+    "eyebrow": "Gratuit, sans CB",
+    "tryFree": "Essayer gratuitement",
     "signIn": "Se connecter",
-    "createAccount": "Créer un compte",
-    "footer": "© 2026 Fluxo"
+    "features": {
+      "eyebrow": "Fonctionnalités",
+      "title": "Tout ce dont vous avez besoin",
+      "subtitle": "Une application complète, sans surcharge.",
+      "f1Title": "Tableau de bord complet",
+      "f1Desc": "Suivi en temps réel de vos comptes courants, épargne et charges récurrentes.",
+      "f2Title": "Onboarding en 5 minutes",
+      "f2Desc": "Configurez vos comptes et commencez à suivre vos finances immédiatement.",
+      "f3Title": "Données sécurisées",
+      "f3Desc": "Hébergé en Europe, chiffré, lecture seule. Vos données ne quittent jamais l'UE.",
+      "f4Title": "Multi-devises",
+      "f4Desc": "EUR, GBP et plus — adapté au marché européen dès le départ."
+    },
+    "stats": {
+      "val1": "2 000+", "label1": "utilisateurs",
+      "val2": "31",    "label2": "pays couverts",
+      "val3": "< 5 min", "label3": "pour démarrer"
+    },
+    "pricing": {
+      "eyebrow": "Tarifs",
+      "title": "Simple. Transparent. Abordable.",
+      "subtitle": "Moins cher que tous nos concurrents. Changez de formule à tout moment.",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "ctaFree": "Commencer gratuitement",
+      "ctaTrial": "Essayer 14 jours gratuit",
+      "forever": "/ pour toujours",
+      "perMonth": "/ mois",
+      "perYear": "/ an"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions fréquentes",
+      "q1": "Mes données sont-elles sécurisées ?",
+      "a1": "Oui. Toutes vos données sont hébergées sur Supabase (EU), chiffrées au repos et en transit. Fluxo fonctionne en lecture seule — nous n'avons jamais accès à vos identifiants bancaires.",
+      "q2": "Puis-je annuler à tout moment ?",
+      "a2": "Oui, sans conditions et sans frais. Vous pouvez annuler depuis votre espace client à tout moment. Aucun engagement, aucune surprise.",
+      "q3": "GoCardless, c'est quoi ?",
+      "a3": "GoCardless Bank Account Data (ex-Nordigen) est un agrégateur bancaire certifié en Europe. Il permet à Fluxo de récupérer vos transactions en lecture seule, sans jamais stocker vos identifiants.",
+      "q4": "Le plan gratuit est-il vraiment gratuit ?",
+      "a4": "Oui, sans carte bancaire et sans limite de durée. Le plan gratuit inclut 1 compte courant, 1 compte épargne, 50 transactions par mois et 5 charges récurrentes.",
+      "q5": "La TVA est-elle incluse dans le prix ?",
+      "a5": "Les prix affichés sont hors TVA. La TVA applicable (selon votre pays) est calculée automatiquement par Stripe Tax lors du paiement."
+    },
+    "footer": "© 2026 Fluxo · EU & UK",
+    "legal": {
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité"
+    }
   }
 }

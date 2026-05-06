@@ -226,14 +226,57 @@
   "landing": {
     "tagline": "Budget management, made simple.",
     "subtitle": "Track your accounts, recurring expenses and savings in one place. Free to get started.",
-    "feature1": "All-in-one",
-    "feature1Desc": "Accounts, recurring, savings",
-    "feature2": "Simple",
-    "feature2Desc": "5-minute onboarding",
-    "feature3": "Secure",
-    "feature3Desc": "Encrypted data, no bank connection",
+    "eyebrow": "Free, no credit card",
+    "tryFree": "Try for free",
     "signIn": "Sign in",
-    "createAccount": "Create account",
-    "footer": "© 2026 Fluxo"
+    "features": {
+      "eyebrow": "Features",
+      "title": "Everything you need",
+      "subtitle": "A complete app, without the clutter.",
+      "f1Title": "Full dashboard",
+      "f1Desc": "Real-time tracking of your current accounts, savings and recurring charges.",
+      "f2Title": "5-minute onboarding",
+      "f2Desc": "Set up your accounts and start tracking your finances immediately.",
+      "f3Title": "Secure data",
+      "f3Desc": "Hosted in Europe, encrypted, read-only. Your data never leaves the EU.",
+      "f4Title": "Multi-currency",
+      "f4Desc": "EUR, GBP and more — built for the European market from day one."
+    },
+    "stats": {
+      "val1": "2,000+", "label1": "users",
+      "val2": "31",     "label2": "countries covered",
+      "val3": "< 5 min", "label3": "to get started"
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Simple. Transparent. Affordable.",
+      "subtitle": "Cheaper than all our competitors. Switch plans at any time.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "ctaFree": "Get started for free",
+      "ctaTrial": "Try free for 14 days",
+      "forever": "/ forever",
+      "perMonth": "/ month",
+      "perYear": "/ year"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently asked questions",
+      "q1": "Is my data secure?",
+      "a1": "Yes. All your data is hosted on Supabase (EU), encrypted at rest and in transit. Fluxo is read-only — we never have access to your banking credentials.",
+      "q2": "Can I cancel at any time?",
+      "a2": "Yes, with no conditions and no fees. You can cancel from your account portal at any time. No commitment, no surprises.",
+      "q3": "What is GoCardless?",
+      "a3": "GoCardless Bank Account Data (formerly Nordigen) is a European-certified bank aggregator. It allows Fluxo to retrieve your transactions read-only, without ever storing your credentials.",
+      "q4": "Is the free plan really free?",
+      "a4": "Yes, no credit card and no time limit. The free plan includes 1 current account, 1 savings account, 50 transactions per month and 5 recurring charges.",
+      "q5": "Is VAT included in the price?",
+      "a5": "Displayed prices are ex-VAT. Applicable VAT (depending on your country) is automatically calculated by Stripe Tax at checkout."
+    },
+    "footer": "© 2026 Fluxo · EU & UK",
+    "legal": {
+      "terms": "Terms of use",
+      "privacy": "Privacy policy"
+    }
   }
 }
