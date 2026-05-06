@@ -223,4 +223,6 @@ export interface Profile {
   preferredCurrency: string;
   onboardingCompleted: boolean;
   onboardingStep: number;
+  tier: "free" | "plus" | "pro";
+  trialEndsAt: string | null;
 }
