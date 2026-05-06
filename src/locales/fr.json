@@ -120,6 +120,13 @@
       "target": "Montant cible (€)",
       "targetDate": "Date cible (optionnel)",
       "skipNote": "Tu pourras créer des objectifs dans Épargne à tout moment."
+    },
+    "step7": {
+      "title": "Choisissez votre formule",
+      "description": "Vous pouvez changer de formule à tout moment.",
+      "ctaFree": "Commencer gratuitement",
+      "ctaTrial": "Essayer 14 jours gratuit",
+      "saving": "Enregistrement…"
     }
   },
   "dashboard": {

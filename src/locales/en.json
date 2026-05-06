@@ -120,6 +120,13 @@
       "target": "Target amount (€)",
       "targetDate": "Target date (optional)",
       "skipNote": "You can create goals in Savings at any time."
+    },
+    "step7": {
+      "title": "Choose your plan",
+      "description": "You can change your plan at any time.",
+      "ctaFree": "Get started for free",
+      "ctaTrial": "Try free for 14 days",
+      "saving": "Saving…"
     }
   },
   "dashboard": {
