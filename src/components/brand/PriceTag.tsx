@@ -14,7 +14,7 @@ export const PriceTag = React.forwardRef<HTMLDivElement, PriceTagProps>(
     if (cadence === "free" || amountEUR === 0) {
       return (
         <div ref={ref} className={cn("flex items-baseline gap-1", className)} {...props}>
-          <span className="text-4xl font-bold tracking-[-0.025em] text-foreground">0 €</span>
+          <span className="text-4xl font-bold tracking-[-0.025em] text-ink">0 €</span>
           <span className="text-sm text-ink-muted">/ pour toujours</span>
         </div>
       );
@@ -22,7 +22,7 @@ export const PriceTag = React.forwardRef<HTMLDivElement, PriceTagProps>(
     return (
       <div ref={ref} className={cn("flex flex-col gap-2", className)} {...props}>
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold tracking-[-0.025em] text-foreground tabular-nums">
+          <span className="text-4xl font-bold tracking-[-0.025em] text-ink tabular-nums">
             {formatTierPrice(amountEUR)}
           </span>
           <span className="text-sm text-ink-muted">

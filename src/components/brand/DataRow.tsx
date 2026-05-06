@@ -10,7 +10,7 @@ export interface DataRowProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const toneClass: Record<NonNullable<DataRowProps["tone"]>, string> = {
-  default: "text-foreground",
+  default: "text-ink",
   positive: "text-positive",
   negative: "text-negative",
   muted: "text-ink-muted",
@@ -27,7 +27,7 @@ export const DataRow = React.forwardRef<HTMLDivElement, DataRowProps>(
       )}
       {...props}
     >
-      <span className="text-foreground">{label}</span>
+      <span className="text-ink">{label}</span>
       <span className={cn("font-medium tabular-nums", toneClass[tone])}>{value}</span>
     </div>
   )

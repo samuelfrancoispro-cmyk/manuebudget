@@ -22,7 +22,7 @@ export const SectionHeader = React.forwardRef<HTMLDivElement, SectionHeaderProps
       {...props}
     >
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.025em] text-foreground leading-tight">
+      <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.025em] text-ink leading-tight">
         {title}
       </h2>
       {description && (

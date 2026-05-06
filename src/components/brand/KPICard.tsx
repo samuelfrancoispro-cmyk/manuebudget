@@ -31,7 +31,7 @@ export const KPICard = React.forwardRef<HTMLDivElement, KPICardProps>(
         <Eyebrow>{label}</Eyebrow>
         {icon && <span className="text-ink-muted">{icon}</span>}
       </div>
-      <div className="text-2xl font-semibold tracking-[-0.015em] text-foreground tabular-nums">
+      <div className="text-2xl font-semibold tracking-[-0.015em] text-ink tabular-nums">
         {value}
       </div>
       {delta && (
