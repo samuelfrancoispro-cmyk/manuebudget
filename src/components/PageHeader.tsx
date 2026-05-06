@@ -10,7 +10,7 @@ export default function PageHeader({ title, description, action }: Props) {
       <div className="min-w-0 flex-1">
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
         {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1 text-sm text-ink-muted">{description}</p>
         )}
       </div>
       {action && <div className="w-full sm:w-auto">{action}</div>}

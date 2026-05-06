@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -67,6 +67,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+
+const CHART_POSITIVE = "hsl(var(--positive))";
+const CHART_NEGATIVE = "hsl(var(--negative))";
+const CHART_MUTED = "hsl(var(--ink-muted))";
 
 function moisPrec(mois: string, n: number = 1): string {
   const [y, m] = mois.split("-").map(Number);
@@ -334,7 +338,7 @@ export default function Dashboard() {
       />
 
       {/* Bloc prévisionnel */}
-      <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
         {t("dashboard.prevSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -372,7 +376,7 @@ export default function Dashboard() {
       </div>
 
       {/* Bloc réel */}
-      <div className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
         {t("dashboard.realSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -430,7 +434,7 @@ export default function Dashboard() {
                     formatter={(v) => formatEUR(Number(v))}
                     labelFormatter={(v) => monthLabel(String(v))}
                   />
-                  <Line type="monotone" dataKey="solde" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="solde" stroke={CHART_MUTED} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -460,7 +464,7 @@ export default function Dashboard() {
                     type="button"
                     key={compte.id}
                     onClick={() => setCompteId(compte.id)}
-                    className="flex items-center justify-between rounded-md border p-3 text-left hover:bg-accent"
+                    className="flex items-center justify-between rounded-md border p-3 text-left hover:bg-surface"
                   >
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium">
@@ -471,7 +475,7 @@ export default function Dashboard() {
                           </Badge>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-ink-muted">
                         {t("dashboard.accountDetail.remainingBalance", { amount: formatEUR(totauxCompte.solde) })}
                       </div>
                     </div>
@@ -501,7 +505,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {previsions.every((p) => p.revenus === 0 && p.depenses === 0) ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-ink-muted">
                 {t("dashboard.forecast.empty")}
               </p>
             ) : (
@@ -516,15 +520,15 @@ export default function Dashboard() {
                         tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                       />
                       <RTooltip formatter={(v) => formatEUR(Number(v))} />
-                      <Bar dataKey="revenus" fill="#10b981" name={t("dashboard.forecast.revenues")} />
-                      <Bar dataKey="depenses" fill="#ef4444" name={t("dashboard.forecast.expenses")} />
+                      <Bar dataKey="revenus" fill={CHART_POSITIVE} name={t("dashboard.forecast.revenues")} />
+                      <Bar dataKey="depenses" fill={CHART_NEGATIVE} name={t("dashboard.forecast.expenses")} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   {previsions.map((p) => (
                     <div key={p.mois} className="rounded border p-2 text-center">
-                      <div className="text-muted-foreground">{p.label}</div>
+                      <div className="text-ink-muted">{p.label}</div>
                       <div
                         className={`mt-1 font-semibold ${p.solde >= 0 ? "text-emerald-600" : "text-rose-600"}`}
                       >
@@ -547,7 +551,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {prochaines.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-ink-muted">
                 {t("dashboard.upcoming.empty")}
               </p>
             ) : (
@@ -569,7 +573,7 @@ export default function Dashboard() {
                             : "/argent?tab=recurrents"
                         )
                       }
-                      className="flex w-full items-center justify-between rounded-md border p-2 text-left hover:bg-accent"
+                      className="flex w-full items-center justify-between rounded-md border p-2 text-left hover:bg-surface"
                     >
                       <div className="flex items-center gap-2">
                         <div
@@ -591,7 +595,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <div className="text-sm font-medium">{p.libelle}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-ink-muted">
                             {formatDate(p.date)} ·{" "}
                             {dans === 0
                               ? t("dashboard.upcoming.today")
@@ -630,7 +634,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {repartition.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-ink-muted">
                 {t("dashboard.categories.empty")}
               </p>
             ) : (
@@ -648,11 +652,11 @@ export default function Dashboard() {
                           <span className="font-medium">{r.nom}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">{pct.toFixed(0)}%</span>
+                          <span className="text-ink-muted">{pct.toFixed(0)}%</span>
                           <span className="font-medium">{formatEUR(r.montant)}</span>
                         </div>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface">
                         <div
                           className="h-full rounded-full"
                           style={{ width: `${pct}%`, backgroundColor: r.couleur }}
@@ -673,7 +677,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {objectifs.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-ink-muted">
                 {t("dashboard.objectives.empty")}
               </p>
             ) : (
@@ -686,7 +690,7 @@ export default function Dashboard() {
                     <div key={o.id}>
                       <div className="mb-1 flex items-center justify-between text-sm">
                         <span className="font-medium">{o.nom}</span>
-                        <span className="text-muted-foreground">
+                        <span className="text-ink-muted">
                           {formatEUR(actuel)} / {formatEUR(o.montantCible)}
                         </span>
                       </div>
@@ -701,7 +705,7 @@ export default function Dashboard() {
       </div>
 
       <Card
-        className="mt-6 cursor-pointer transition hover:bg-accent/30"
+        className="mt-6 cursor-pointer transition hover:bg-surface/30"
         onClick={() => navigate("/epargne?tab=epargne")}
       >
         <CardHeader>
@@ -711,7 +715,7 @@ export default function Dashboard() {
               <CardDescription>{t("dashboard.savings.description")}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <PiggyBank className="h-4 w-4 text-muted-foreground" />
+              <PiggyBank className="h-4 w-4 text-ink-muted" />
               <span className="text-xl font-semibold">{formatEUR(epargneTotale)}</span>
             </div>
           </div>
@@ -725,7 +729,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           {dernieres.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
+            <p className="py-8 text-center text-sm text-ink-muted">
               {t("dashboard.lastTransactions.empty")}
             </p>
           ) : (
@@ -743,7 +747,7 @@ export default function Dashboard() {
                   const cat = categories.find((c) => c.id === t.categorieId);
                   return (
                     <TableRow key={t.id}>
-                      <TableCell className="text-muted-foreground">{formatDate(t.date)}</TableCell>
+                      <TableCell className="text-ink-muted">{formatDate(t.date)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-normal">
                           <span
@@ -753,7 +757,7 @@ export default function Dashboard() {
                           {cat?.nom ?? "—"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-ink-muted">
                         {t.description || "—"}
                       </TableCell>
                       <TableCell
@@ -779,7 +783,7 @@ export default function Dashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">{t("dashboard.recurring.active")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1 text-xs text-muted-foreground">
+            <CardContent className="space-y-1 text-xs text-ink-muted">
               {recurrentes.slice(0, 3).map((r) => (
                 <div key={r.id} className="flex justify-between">
                   <span>{r.libelle}</span>
@@ -796,7 +800,7 @@ export default function Dashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">{t("dashboard.recurring.transfers")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1 text-xs text-muted-foreground">
+            <CardContent className="space-y-1 text-xs text-ink-muted">
               {virementsRecurrents.slice(0, 3).map((v) => (
                 <div key={v.id} className="flex justify-between">
                   <span>{v.libelle}</span>
@@ -835,7 +839,7 @@ function Kpi({
   comparaison,
   onClick,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   titre: string;
   valeur: string;
   extra?: string;
@@ -848,7 +852,7 @@ function Kpi({
   return (
     <Card
       onClick={onClick}
-      className={onClick ? "cursor-pointer transition hover:bg-accent/30" : ""}
+      className={onClick ? "cursor-pointer transition hover:bg-surface/30" : ""}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
@@ -858,8 +862,8 @@ function Kpi({
       </CardHeader>
       <CardContent>
         <div className={`text-2xl font-semibold ${color}`}>{valeur}</div>
-        {extra && <p className="mt-1 text-xs text-muted-foreground">{extra}</p>}
-        {comparaison && <p className="mt-0.5 text-xs text-muted-foreground">{comparaison}</p>}
+        {extra && <p className="mt-1 text-xs text-ink-muted">{extra}</p>}
+        {comparaison && <p className="mt-0.5 text-xs text-ink-muted">{comparaison}</p>}
       </CardContent>
     </Card>
   );
