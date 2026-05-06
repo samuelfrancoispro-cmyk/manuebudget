@@ -81,12 +81,11 @@
     --input: 39 17% 91% / 0.12;
     --ring: var(--ink);
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
