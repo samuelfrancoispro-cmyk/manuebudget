@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 32" width="140" height="32">
+  <!-- PLACEHOLDER : remplacer par le logo final -->
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#1A1A1A"/>
+  <path d="M10 8 H22 V11 H13 V15 H20 V18 H13 V24 H10 Z" fill="#FAFAF7"/>
+  <text x="42" y="22" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="currentColor" letter-spacing="-0.5">Fluxo</text>
+</svg>
