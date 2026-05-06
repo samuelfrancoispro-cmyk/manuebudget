@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 
 const STEP = 1;
-const TOTAL = 6;
+const TOTAL = 7;
 
 export default function OnboardingProfil() {
   const { t } = useTranslation();

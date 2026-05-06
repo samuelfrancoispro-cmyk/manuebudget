@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const STEP = 4;
-const TOTAL = 6;
+const TOTAL = 7;
 
 type Draft = { nom: string; soldeInitial: number };
 const EMPTY_DRAFT: Draft = { nom: "", soldeInitial: 0 };

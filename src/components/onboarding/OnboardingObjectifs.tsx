@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const STEP = 6;
-const TOTAL = 6;
+const TOTAL = 7;
 
 type Draft = { nom: string; montantCible: number; dateCible: string };
 const EMPTY_DRAFT: Draft = { nom: "", montantCible: 0, dateCible: "" };

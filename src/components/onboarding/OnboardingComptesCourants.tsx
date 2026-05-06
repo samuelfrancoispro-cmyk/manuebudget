@@ -18,7 +18,7 @@ import {
 import type { TypeCompteCourant } from "@/types";
 
 const STEP = 2;
-const TOTAL = 6;
+const TOTAL = 7;
 
 type Draft = { nom: string; type: TypeCompteCourant; soldeInitial: number };
 const EMPTY_DRAFT: Draft = { nom: "", type: "perso", soldeInitial: 0 };

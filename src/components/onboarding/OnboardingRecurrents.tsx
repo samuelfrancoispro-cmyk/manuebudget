@@ -19,7 +19,7 @@ import {
 import type { TypeTransaction } from "@/types";
 
 const STEP = 5;
-const TOTAL = 6;
+const TOTAL = 7;
 
 type Draft = { libelle: string; montant: number; jourMois: number; categorieId: string };
 const EMPTY_DRAFT: Draft = { libelle: "", montant: 0, jourMois: 1, categorieId: "" };

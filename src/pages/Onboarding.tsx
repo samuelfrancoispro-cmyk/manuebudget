@@ -7,6 +7,7 @@ import OnboardingEpargne from "@/components/onboarding/OnboardingEpargne";
 import OnboardingBourse from "@/components/onboarding/OnboardingBourse";
 import OnboardingRecurrents from "@/components/onboarding/OnboardingRecurrents";
 import OnboardingObjectifs from "@/components/onboarding/OnboardingObjectifs";
+import OnboardingTier from "@/components/onboarding/OnboardingTier";
 
 const STEPS: Record<number, React.ComponentType> = {
   1: OnboardingProfil,
@@ -15,6 +16,7 @@ const STEPS: Record<number, React.ComponentType> = {
   4: OnboardingBourse,
   5: OnboardingRecurrents,
   6: OnboardingObjectifs,
+  7: OnboardingTier,
 };
 
 export default function Onboarding() {
