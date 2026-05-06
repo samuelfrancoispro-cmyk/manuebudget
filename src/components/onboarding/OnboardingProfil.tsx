@@ -46,7 +46,7 @@ export default function OnboardingProfil() {
       onNext={handleNext}
       loading={loading}
     >
-      <p className="mb-6 rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+      <p className="mb-6 rounded-lg bg-surface px-4 py-3 text-sm text-ink-muted">
         {t("onboarding.step1.welcome")}
       </p>
       <div className="space-y-4">

@@ -57,7 +57,7 @@ export default function OnboardingEpargne() {
       onSkip={() => nav(STEP + 1)}
       loading={loading}
     >
-      <p className="mb-4 text-xs text-muted-foreground">{t("onboarding.step3.skipNote")}</p>
+      <p className="mb-4 text-xs text-ink-muted">{t("onboarding.step3.skipNote")}</p>
       <div className="space-y-3">
         {epargneComptes.map((c) => (
           <Card key={c.id}>
@@ -65,12 +65,12 @@ export default function OnboardingEpargne() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium">{c.nom}</span>
-                <span className="text-xs text-muted-foreground">{c.tauxAnnuel}%</span>
+                <span className="text-xs text-ink-muted">{c.tauxAnnuel}%</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                className="h-7 w-7 text-ink-muted hover:text-destructive"
                 onClick={() => deleteCompte(c.id)}
               >
                 <Trash2 className="h-4 w-4" />

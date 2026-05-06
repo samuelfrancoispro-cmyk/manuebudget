@@ -91,7 +91,7 @@ export default function OnboardingRecurrents() {
       onSkip={() => nav(STEP + 1)}
       loading={loading}
     >
-      <p className="mb-4 text-xs text-muted-foreground">{t("onboarding.step5.skipNote")}</p>
+      <p className="mb-4 text-xs text-ink-muted">{t("onboarding.step5.skipNote")}</p>
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-4 w-full">
           <TabsTrigger value="revenu" className="flex-1">
@@ -120,14 +120,14 @@ export default function OnboardingRecurrents() {
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <span className="font-medium">{r.libelle}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-ink-muted">
                       {r.montant.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                     </span>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    className="h-7 w-7 text-ink-muted hover:text-destructive"
                     onClick={() => deleteRecurrente(r.id)}
                   >
                     <Trash2 className="h-4 w-4" />

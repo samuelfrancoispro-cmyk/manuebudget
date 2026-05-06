@@ -57,7 +57,7 @@ export default function OnboardingBourse() {
       onSkip={() => nav(STEP + 1)}
       loading={loading}
     >
-      <p className="mb-4 text-xs text-muted-foreground">{t("onboarding.step4.skipNote")}</p>
+      <p className="mb-4 text-xs text-ink-muted">{t("onboarding.step4.skipNote")}</p>
       <div className="space-y-3">
         {bourseComptes.map((c) => (
           <Card key={c.id}>
@@ -69,7 +69,7 @@ export default function OnboardingBourse() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                className="h-7 w-7 text-ink-muted hover:text-destructive"
                 onClick={() => deleteCompte(c.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -99,7 +99,7 @@ export default function OnboardingBourse() {
                 }
               />
             </div>
-            <p className="text-xs text-muted-foreground">{t("onboarding.step4.isinNote")}</p>
+            <p className="text-xs text-ink-muted">{t("onboarding.step4.isinNote")}</p>
             <div className="flex gap-2">
               <Button size="sm" onClick={addAndReset} disabled={!draft.nom.trim() || loading}>
                 <Plus className="mr-1 h-4 w-4" />

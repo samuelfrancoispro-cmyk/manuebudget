@@ -61,7 +61,7 @@ export default function OnboardingTier() {
       await updateProfile({ tier, trialEndsAt });
       await completeOnboarding();
     } catch {
-      toast.error("Une erreur est survenue. Réessayez.");
+      toast.error(t("common.error"));
       setSaving(false);
     }
   };

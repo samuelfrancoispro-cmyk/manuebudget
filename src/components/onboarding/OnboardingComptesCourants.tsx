@@ -80,12 +80,12 @@ export default function OnboardingComptesCourants() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium">{c.nom}</span>
-                <span className="text-xs capitalize text-muted-foreground">{c.type}</span>
+                <span className="text-xs capitalize text-ink-muted">{c.type}</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                className="h-7 w-7 text-ink-muted hover:text-destructive"
                 onClick={() => deleteCompteCourant(c.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -156,7 +156,7 @@ export default function OnboardingComptesCourants() {
         )}
 
         {comptesCourants.length === 0 && !showForm && (
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-ink-muted">
             {t("onboarding.step2.minError")}
           </p>
         )}

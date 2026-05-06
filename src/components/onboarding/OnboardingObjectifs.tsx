@@ -68,7 +68,7 @@ export default function OnboardingObjectifs() {
       onSkip={handleFinish}
       loading={loading}
     >
-      <p className="mb-4 text-xs text-muted-foreground">{t("onboarding.step6.skipNote")}</p>
+      <p className="mb-4 text-xs text-ink-muted">{t("onboarding.step6.skipNote")}</p>
       <div className="space-y-3">
         {objectifs.map((o) => (
           <Card key={o.id}>
@@ -76,14 +76,14 @@ export default function OnboardingObjectifs() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium">{o.nom}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-ink-muted">
                   {o.montantCible.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                 </span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                className="h-7 w-7 text-ink-muted hover:text-destructive"
                 onClick={() => deleteObjectif(o.id)}
               >
                 <Trash2 className="h-4 w-4" />
