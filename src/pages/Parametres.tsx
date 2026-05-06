@@ -6,6 +6,7 @@ import { useStore } from "@/store/useStore";
 import type { Categorie, CompteCourant, TypeCompteCourant, TypeTransaction } from "@/types";
 import { formatEUR, todayISO } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
+import { SectionHeader, DataRow } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -127,7 +128,7 @@ export default function ParametresPage() {
           </CardHeader>
           <CardContent>
             {store.comptesCourants.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-ink-muted">
                 Aucun compte. Ajoutes-en un pour commencer.
               </p>
             ) : (
@@ -135,7 +136,7 @@ export default function ParametresPage() {
                 {store.comptesCourants.map((cc) => (
                   <div
                     key={cc.id}
-                    className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                    className="flex items-center justify-between rounded-md border bg-surface px-3 py-2"
                   >
                     <div>
                       <div className="flex items-center gap-2">
@@ -144,7 +145,7 @@ export default function ParametresPage() {
                           {cc.type === "joint" ? "Joint" : "Perso"}
                         </Badge>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-ink-muted">
                         Solde initial : {formatEUR(cc.soldeInitial)}
                         {cc.description ? ` · ${cc.description}` : ""}
                       </div>
@@ -225,7 +226,7 @@ export default function ParametresPage() {
               {store.categories.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between rounded-md border bg-card px-3 py-2"
+                  className="flex items-center justify-between rounded-md border bg-surface px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
                     <span
@@ -233,7 +234,7 @@ export default function ParametresPage() {
                       style={{ backgroundColor: c.couleur }}
                     />
                     <span className="text-sm font-medium">{c.nom}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-ink-muted">
                       {c.type === "revenu" ? "Revenu" : "Dépense"}
                     </span>
                   </div>
@@ -263,17 +264,17 @@ export default function ParametresPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Statistiques</CardTitle>
+            <SectionHeader title="Statistiques" align="left" />
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-            <Stat label="Comptes courants" valeur={store.comptesCourants.length} />
-            <Stat label="Transactions" valeur={store.transactions.length} />
-            <Stat label="Récurrents" valeur={store.recurrentes.length} />
-            <Stat label="Catégories" valeur={store.categories.length} />
-            <Stat label="Comptes épargne" valeur={store.comptes.length} />
-            <Stat label="Mouvements" valeur={store.mouvements.length} />
-            <Stat label="Objectifs" valeur={store.objectifs.length} />
-            <Stat label="Projets" valeur={store.projets.length} />
+          <CardContent className="divide-y">
+            <DataRow label="Comptes courants" value={store.comptesCourants.length} />
+            <DataRow label="Transactions" value={store.transactions.length} />
+            <DataRow label="Récurrents" value={store.recurrentes.length} />
+            <DataRow label="Catégories" value={store.categories.length} />
+            <DataRow label="Comptes épargne" value={store.comptes.length} />
+            <DataRow label="Mouvements" value={store.mouvements.length} />
+            <DataRow label="Objectifs" value={store.objectifs.length} />
+            <DataRow label="Projets" value={store.projets.length} />
           </CardContent>
         </Card>
       </div>
@@ -294,15 +295,6 @@ export default function ParametresPage() {
         }}
       />
     </>
-  );
-}
-
-function Stat({ label, valeur }: { label: string; valeur: number }) {
-  return (
-    <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-xl font-semibold">{valeur}</div>
-    </div>
   );
 }
 
@@ -392,7 +384,7 @@ function CompteCourantForm({
               value={dateReference}
               onChange={(e) => setDateReference(e.target.value)}
             />
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-ink-muted">
               Date où ce solde est constaté. Les transactions/récurrences avant cette date sont
               traitées comme historique (n'impactent pas le solde actuel).
             </p>
