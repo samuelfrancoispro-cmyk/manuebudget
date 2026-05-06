@@ -7,6 +7,7 @@ export { DataRow } from "./DataRow";
 export { KPICard } from "./KPICard";
 export { EmptyState } from "./EmptyState";
 export { BrandLogo } from "./BrandLogo";
+export { PricingTable } from "./PricingTable";
 
 export type { EyebrowProps } from "./Eyebrow";
 export type { SectionHeaderProps } from "./SectionHeader";
