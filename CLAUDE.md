@@ -1,4 +1,4 @@
-# Budget app — Contexte projet
+# Fluxo — Contexte projet
 
 ## Vision (pivot 2026-05-02)
 **SaaS B2C** de gestion de budget personnel grand public francophone.
@@ -12,11 +12,15 @@ Concurrents : Bankin', Linxo, YNAB, Lydia. Différenciateur : UX épurée + onbo
 - **Provider billing** : Stripe (Subscriptions + Customer Portal + Tax).
 - **Statut légal** : lecture seule uniquement → pas d'agrément ACPR. Toujours respecter RGPD + cybersécurité (cf. `project_compliance.md`).
 
-## Chantiers SaaS — ordre fixé
-1. **Onboarding wizard** ← PROCHAIN — collecte 1ère connexion (comptes, revenus, charges) → dashboard pré-rempli
-2. **Open Banking GoCardless** — sync temps réel via redirect-flow + webhook
-3. **Billing Stripe** — abonnements, webhooks edge function, portail client
-4. **Feature gating / paywall** — droits par tier, badges "Pro" sobres
+## Refonte SaaS — 3 cycles (décidé 2026-05-05)
+1. **Cycle A — Fondations design** ← EN COURS (spec écrite) — brand mono warm paper, design tokens, composants brand/, `pricing.ts`. Spec : `docs/superpowers/specs/2026-05-05-cycle-a-fondations-design.md`.
+2. **Cycle B — Refonte UI complète** — Landing pro, Login + Google OAuth, Onboarding redesign, refonte 6 pages app, SEO base.
+3. **Cycle C — Monétisation** — Stripe billing (Subscriptions + Portal + Tax), feature gating runtime, GoCardless, PWA polish, SEO avancé.
+
+## Brand & pricing — figés 2026-05-05
+- **Direction visuelle** : Notion warm paper mono + accents sourds. Détails : mémoire `project_brand.md`.
+- **Logo** : fait par l'user lui-même (onde + F sur fond noir). Code = slot SVG (`/logo.svg`, `/logo-mark.svg`, `/icon-512.svg`).
+- **Tiers** : Gratuit / Plus 2,99€/mois / Pro 4,99€/mois. Trial 14j sans CB. Détails : mémoire `project_pricing.md`.
 
 ## Stack
 Vite 6 + React 18 + TS 5.7 + Tailwind v3 + shadcn (Radix) + zustand 5 + Supabase (Postgres+Auth+RLS) + recharts 3 + PWA. Déployé Vercel.
@@ -38,6 +42,7 @@ Vite 6 + React 18 + TS 5.7 + Tailwind v3 + shadcn (Radix) + zustand 5 + Supabase
 - **Reprise** : si user tape `continu` → lire `docs/superpowers/state/CURRENT.md` puis reprendre sans re-questionner.
 - Pas de tests/CI imposés à ce stade — à proposer quand le sujet stabilité émergera (avant lancement payant).
 
-## Périmètre v2 actuel (au 2026-05-02)
-9 pages : Dashboard, Comptes, Transactions, Récurrents, Épargne, Simulateur, Rapports CSV, Paramètres, Aide.
-Auth Supabase email/pwd. Mode sombre/clair persisté. PWA installable.
+## Périmètre actuel (au 2026-05-05)
+- 6 pages app + Landing + Login + Onboarding (6 étapes).
+- Auth Supabase email/pwd. Mode sombre/clair persisté. PWA installable.
+- Refonte design en cours (Cycle A) — la matière fonctionnelle reste, le visuel et le pricing sont en cours de refonte.

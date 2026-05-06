@@ -11,3 +11,7 @@ dist
 *.xlsx
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
+
+# Superpowers brainstorming companion
+.superpowers/
+docs/superpowers/state/
