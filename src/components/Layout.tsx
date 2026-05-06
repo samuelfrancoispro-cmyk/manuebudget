@@ -1,3 +1,4 @@
+// src/components/Layout.tsx
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -40,13 +42,10 @@ export default function Layout() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex min-h-screen bg-paper">
       {/* Mobile top bar */}
-      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
-        <div className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
-          <span className="font-semibold">{t("nav.appName")}</span>
-        </div>
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-paper px-4 md:hidden">
+        <BrandLogo variant="mark" className="h-7" />
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("nav.toggleTheme")}>
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -60,21 +59,18 @@ export default function Layout() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 max-w-[80%] border-r bg-background shadow-xl">
-            <div className="flex h-14 items-center justify-between border-b px-4">
-              <div className="flex items-center gap-2">
-                <Wallet className="h-5 w-5" />
-                <span className="font-semibold">{t("nav.appName")}</span>
-              </div>
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-64 max-w-[80%] border-r border-border bg-paper shadow-xl">
+            <div className="flex h-14 items-center justify-between border-b border-border px-4">
+              <BrandLogo variant="full" className="h-7" />
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label={t("nav.close")}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <NavList nav={nav} onClick={() => setMobileOpen(false)} />
-            <div className="mt-2 space-y-2 border-t p-3">
+            <div className="mt-2 space-y-2 border-t border-border p-3">
               {user?.email && (
-                <div className="truncate px-1 text-xs text-muted-foreground" title={user.email}>
+                <div className="truncate px-1 text-xs text-ink-muted" title={user.email}>
                   {user.email}
                 </div>
               )}
@@ -92,15 +88,14 @@ export default function Layout() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r bg-background md:flex md:flex-col">
-        <div className="flex h-16 items-center gap-2 border-b px-6">
-          <Wallet className="h-5 w-5" />
-          <span className="font-semibold">{t("nav.appName")}</span>
+      <aside className="hidden w-60 shrink-0 border-r border-border bg-paper md:flex md:flex-col">
+        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
+          <BrandLogo variant="full" className="h-7" />
         </div>
         <NavList nav={nav} />
-        <div className="mt-auto space-y-2 border-t p-3">
+        <div className="mt-auto space-y-2 border-t border-border p-3">
           {user?.email && (
-            <div className="truncate px-1 text-xs text-muted-foreground" title={user.email}>
+            <div className="truncate px-1 text-xs text-ink-muted" title={user.email}>
               {user.email}
             </div>
           )}
@@ -124,9 +119,15 @@ export default function Layout() {
   );
 }
 
-function NavList({ nav, onClick }: { nav: { to: string; label: string; icon: React.ElementType }[]; onClick?: () => void }) {
+function NavList({
+  nav,
+  onClick,
+}: {
+  nav: { to: string; label: string; icon: React.ElementType }[];
+  onClick?: () => void;
+}) {
   return (
-    <nav className="flex flex-col gap-1 p-3">
+    <nav className="flex flex-col gap-0.5 p-3">
       {nav.map((item) => (
         <NavLink
           key={item.to}
@@ -134,10 +135,10 @@ function NavList({ nav, onClick }: { nav: { to: string; label: string; icon: Rea
           onClick={onClick}
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                ? "bg-surface text-ink"
+                : "text-ink-muted hover:bg-surface hover:text-ink"
             )
           }
         >
