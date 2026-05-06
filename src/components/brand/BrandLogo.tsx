@@ -2,7 +2,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export interface BrandLogoProps extends React.HTMLAttributes<HTMLImageElement> {
+export interface BrandLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   variant?: "full" | "mark";
   size?: number;
 }
