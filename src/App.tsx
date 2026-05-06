@@ -10,6 +10,7 @@ import Aide from "./pages/Aide";
 import Rapports from "./pages/Rapports";
 import LoginPage from "./pages/Login";
 import Landing from "./pages/Landing";
+import AuthCallback from "./pages/AuthCallback";
 import Onboarding from "./pages/Onboarding";
 import { Toaster } from "./components/ui/sonner";
 import { useAuth } from "./lib/auth";
@@ -36,6 +37,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster position="bottom-right" />
@@ -85,8 +87,8 @@ export default function App() {
 
 function SplashLoader({ label }: { label: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30">
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+    <div className="flex min-h-screen items-center justify-center bg-paper">
+      <div className="flex items-center gap-3 text-sm text-ink-muted">
         <Loader2 className="h-5 w-5 animate-spin" />
         {label}
       </div>

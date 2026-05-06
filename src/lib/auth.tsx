@@ -9,6 +9,7 @@ interface AuthCtx {
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string; message?: string }>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -39,7 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error, data } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
     if (data.session) return {};
-    return { message: "Vérifie tes mails pour confirmer le compte." };
+    return { message: "confirm" };
+  };
+
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    return { error: error?.message };
   };
 
   const signOut = async () => {
@@ -55,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
+        signInWithGoogle,
       }}
     >
       {children}

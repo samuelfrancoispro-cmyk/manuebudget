@@ -50,7 +50,14 @@
     "goToSignIn": "Se connecter",
     "errorRequired": "Email et mot de passe requis",
     "successSignIn": "Connexion réussie",
-    "successSignUp": "Compte créé"
+    "successSignUp": "Compte créé",
+    "continueGoogle": "Continuer avec Google",
+    "orSeparator": "ou",
+    "emailConfirmTitle": "Vérifiez vos emails",
+    "emailConfirmDesc": "Un lien de confirmation a été envoyé à {{email}}. Cliquez sur le lien pour activer votre compte.",
+    "resendEmail": "Renvoyer l'email",
+    "resendSent": "Email renvoyé",
+    "backToLogin": "Retour à la connexion"
   },
   "onboarding": {
     "stepOf": "Étape {{step}} sur {{total}}",
