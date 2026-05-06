@@ -1,10 +1,9 @@
 // src/components/brand/PricingTable.tsx
-import { useState } from "react";
+import React, { useState } from "react";
 import { Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { tiers, features, sectionLabels, type TierId, type FeatureValue } from "@/lib/pricing";
-import { PriceTag } from "./PriceTag";
 import { ProBadge } from "./ProBadge";
 import { Eyebrow } from "./Eyebrow";
 
@@ -232,8 +231,8 @@ export function PricingTable({ onSelectTier, ctaLabel, className }: PricingTable
               const sectionFeatures = features.filter((f) => f.section === section);
               if (sectionFeatures.length === 0) return null;
               return (
-                <>
-                  <tr key={`section-${section}`} className="border-b border-border bg-surface/50">
+                <React.Fragment key={`section-${section}`}>
+                  <tr className="border-b border-border bg-surface/50">
                     <td colSpan={4} className="px-4 py-2">
                       <Eyebrow>{sectionLabel}</Eyebrow>
                     </td>
@@ -251,7 +250,7 @@ export function PricingTable({ onSelectTier, ctaLabel, className }: PricingTable
                       ))}
                     </tr>
                   ))}
-                </>
+                </React.Fragment>
               );
             })}
           </tbody>
