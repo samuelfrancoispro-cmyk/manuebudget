@@ -1,3 +1,5 @@
+import type { TierId } from "@/lib/pricing";
+
 export type TypeTransaction = "revenu" | "depense";
 
 export type TypeCompteCourant = "perso" | "joint";
@@ -223,6 +225,6 @@ export interface Profile {
   preferredCurrency: string;
   onboardingCompleted: boolean;
   onboardingStep: number;
-  tier: "free" | "plus" | "pro";
+  tier: TierId;
   trialEndsAt: string | null;
 }

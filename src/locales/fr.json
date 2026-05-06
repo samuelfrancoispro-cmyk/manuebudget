@@ -126,7 +126,31 @@
       "description": "Vous pouvez changer de formule à tout moment.",
       "ctaFree": "Commencer gratuitement",
       "ctaTrial": "Essayer 14 jours gratuit",
-      "saving": "Enregistrement…"
+      "saving": "Enregistrement…",
+      "free": "Gratuit",
+      "highlights": {
+        "free": [
+          "1 compte courant",
+          "1 compte épargne",
+          "50 transactions / mois",
+          "5 charges récurrentes",
+          "Export JSON sauvegarde"
+        ],
+        "plus": [
+          "5 comptes courants & épargne",
+          "Transactions illimitées",
+          "Import CSV bancaire (5/mois)",
+          "Export Excel multi-feuilles",
+          "Essai 14j sans CB"
+        ],
+        "pro": [
+          "Comptes illimités",
+          "Sync automatique GoCardless",
+          "Catégorisation auto des transactions",
+          "Support prioritaire 24h",
+          "Essai 14j sans CB"
+        ]
+      }
     }
   },
   "dashboard": {

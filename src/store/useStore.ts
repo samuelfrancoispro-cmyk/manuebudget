@@ -731,11 +731,11 @@ export const useStore = create<State>()((set, get) => ({
     const userId = await getUserId();
     await supabase
       .from("profiles")
-      .update({ "onboardingCompleted": true, "onboardingStep": 6 })
+      .update({ "onboardingCompleted": true, "onboardingStep": 7 })
       .eq("user_id", userId);
     set((s) => ({
       ...s,
-      profile: s.profile ? { ...s.profile, onboardingCompleted: true, onboardingStep: 6 } : null,
+      profile: s.profile ? { ...s.profile, onboardingCompleted: true, onboardingStep: 7 } : null,
     }));
   },
 }));

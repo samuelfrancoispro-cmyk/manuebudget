@@ -126,7 +126,31 @@
       "description": "You can change your plan at any time.",
       "ctaFree": "Get started for free",
       "ctaTrial": "Try free for 14 days",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "free": "Free",
+      "highlights": {
+        "free": [
+          "1 current account",
+          "1 savings account",
+          "50 transactions / month",
+          "5 recurring expenses",
+          "JSON backup export"
+        ],
+        "plus": [
+          "5 current & savings accounts",
+          "Unlimited transactions",
+          "CSV bank import (5/month)",
+          "Multi-sheet Excel export",
+          "14-day free trial"
+        ],
+        "pro": [
+          "Unlimited accounts",
+          "Automatic GoCardless sync",
+          "Automatic transaction categorization",
+          "Priority 24h support",
+          "14-day free trial"
+        ]
+      }
     }
   },
   "dashboard": {

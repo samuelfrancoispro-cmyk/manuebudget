@@ -4,34 +4,11 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { tiers, type TierId } from "@/lib/pricing";
+import { tiers, formatTierPrice, type TierId } from "@/lib/pricing";
 import { ProBadge } from "@/components/brand/ProBadge";
 import { useStore } from "@/store/useStore";
 import { supabase } from "@/lib/supabase";
 
-const HIGHLIGHTS: Record<TierId, string[]> = {
-  free: [
-    "1 compte courant",
-    "1 compte épargne",
-    "50 transactions / mois",
-    "5 charges récurrentes",
-    "Export JSON",
-  ],
-  plus: [
-    "5 comptes courants & épargne",
-    "Transactions illimitées",
-    "Import CSV bancaire",
-    "Export Excel",
-    "Essai 14j sans CB",
-  ],
-  pro: [
-    "Comptes illimités",
-    "Sync GoCardless auto",
-    "Catégorisation automatique",
-    "Support prioritaire",
-    "Essai 14j sans CB",
-  ],
-};
 
 export default function OnboardingTier() {
   const { t } = useTranslation();
@@ -53,10 +30,12 @@ export default function OnboardingTier() {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) throw new Error("Non connecté");
 
-      await supabase
+      const { error: updateError } = await supabase
         .from("profiles")
         .update({ tier, trialEndsAt })
         .eq("user_id", authData.user.id);
+
+      if (updateError) throw updateError;
 
       await updateProfile({ tier, trialEndsAt });
       await completeOnboarding();
@@ -112,13 +91,13 @@ export default function OnboardingTier() {
                     </div>
                     <p className={cn("text-xs", isSelected ? "text-paper/70" : "text-ink-muted")}>
                       {tier.monthlyPriceEUR === 0
-                        ? "Gratuit"
-                        : `${tier.monthlyPriceEUR.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} € / mois`}
+                        ? t("onboarding.step7.free")
+                        : `${formatTierPrice(tier.monthlyPriceEUR)} / mois`}
                     </p>
                   </div>
 
                   <ul className="space-y-1.5">
-                    {HIGHLIGHTS[tier.id].map((h) => (
+                    {(t(`onboarding.step7.highlights.${tier.id}`, { returnObjects: true }) as string[]).map((h) => (
                       <li key={h} className="flex items-start gap-2 text-xs">
                         <Check className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", isSelected ? "text-paper" : "text-positive")} />
                         <span className={isSelected ? "text-paper/90" : "text-ink"}>{h}</span>
