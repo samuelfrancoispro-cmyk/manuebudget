@@ -17,6 +17,7 @@ import type {
   ActifBoursier,
   Profile,
 } from "@/types";
+import type { DashboardPage, DashboardWidget, WidgetType, WidgetColSpan, WidgetRowSpan } from "@/types";
 
 interface State {
   loaded: boolean;
@@ -102,6 +103,22 @@ interface State {
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   setOnboardingStep: (step: number) => Promise<void>;
   completeOnboarding: () => Promise<void>;
+
+  // === Workspace ===
+  dashboardPages: DashboardPage[];
+  dashboardWidgets: DashboardWidget[];
+
+  loadWorkspace: (userId: string) => Promise<void>;
+  seedDefaultWorkspace: (userId: string) => Promise<void>;
+
+  addPage: (name: string) => Promise<DashboardPage>;
+  renamePage: (id: string, name: string) => Promise<void>;
+  deletePage: (id: string) => Promise<void>;
+  reorderPages: (ids: string[]) => Promise<void>;
+
+  addWidget: (pageId: string, widgetType: WidgetType, colSpan?: WidgetColSpan, rowSpan?: WidgetRowSpan) => Promise<DashboardWidget>;
+  removeWidget: (id: string) => Promise<void>;
+  reorderWidgets: (pageId: string, orderedIds: string[]) => Promise<void>;
 }
 
 const categoriesDefaut: Omit<Categorie, "id">[] = [
@@ -153,6 +170,8 @@ export const useStore = create<State>()((set, get) => ({
   virementsRecurrents: [],
   actifs: [],
   profile: null,
+  dashboardPages: [],
+  dashboardWidgets: [],
 
   clearLocal: () =>
     set({
@@ -173,6 +192,8 @@ export const useStore = create<State>()((set, get) => ({
       virementsRecurrents: [],
       actifs: [],
       profile: null,
+      dashboardPages: [],
+      dashboardWidgets: [],
     }),
 
   loadAll: async (userId) => {
@@ -195,6 +216,8 @@ export const useStore = create<State>()((set, get) => ({
       bankProfiles: [],
       virementsRecurrents: [],
       actifs: [],
+      dashboardPages: [],
+      dashboardWidgets: [],
     });
     try {
       const [
@@ -298,6 +321,9 @@ export const useStore = create<State>()((set, get) => ({
         actifs: (acts.data ?? []).map((r: any) => strip<ActifBoursier>(r)),
         profile,
       });
+
+      // Charger le workspace (pages + widgets), seed si vide
+      await get().loadWorkspace(userId);
     } catch (e) {
       console.error(e);
       set({ loading: false });
@@ -736,6 +762,169 @@ export const useStore = create<State>()((set, get) => ({
     set((s) => ({
       ...s,
       profile: s.profile ? { ...s.profile, onboardingCompleted: true, onboardingStep: 7 } : null,
+    }));
+  },
+
+  // ---------- Workspace ----------
+  loadWorkspace: async (userId) => {
+    const [pages, widgets] = await Promise.all([
+      supabase.from("dashboard_pages").select("*").eq("user_id", userId).order('"order"'),
+      supabase.from("dashboard_widgets").select("*").eq("user_id", userId).order('"order"'),
+    ]);
+    const parsedPages: DashboardPage[] = (pages.data ?? []).map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      order: r.order,
+      isDefault: r.is_default,
+    }));
+    const parsedWidgets: DashboardWidget[] = (widgets.data ?? []).map((r: any) => ({
+      id: r.id,
+      pageId: r.page_id,
+      widgetType: r.widget_type as WidgetType,
+      colSpan: r.col_span as WidgetColSpan,
+      rowSpan: r.row_span as WidgetRowSpan,
+      order: r.order,
+      config: r.config ?? {},
+    }));
+    set({ dashboardPages: parsedPages, dashboardWidgets: parsedWidgets });
+    if (parsedPages.length === 0) {
+      await get().seedDefaultWorkspace(userId);
+    }
+  },
+
+  seedDefaultWorkspace: async (userId) => {
+    const { data: pageData, error: pageErr } = await supabase
+      .from("dashboard_pages")
+      .insert({ user_id: userId, name: "Accueil", order: 0, is_default: true })
+      .select("*")
+      .single();
+    if (pageErr || !pageData) return;
+    const pageId = pageData.id;
+
+    const defaultWidgets: Array<{ widget_type: WidgetType; col_span: number; row_span: number; order: number }> = [
+      { widget_type: "kpi_solde", col_span: 2, row_span: 1, order: 0 },
+      { widget_type: "kpi_epargne", col_span: 2, row_span: 1, order: 1 },
+      { widget_type: "kpi_previsionnel", col_span: 2, row_span: 1, order: 2 },
+      { widget_type: "kpi_mensuel", col_span: 2, row_span: 1, order: 3 },
+      { widget_type: "chart_evolution", col_span: 2, row_span: 2, order: 4 },
+      { widget_type: "chart_forecast", col_span: 2, row_span: 2, order: 5 },
+      { widget_type: "list_prochaines", col_span: 2, row_span: 1, order: 6 },
+      { widget_type: "chart_categories", col_span: 2, row_span: 1, order: 7 },
+      { widget_type: "list_objectifs", col_span: 4, row_span: 1, order: 8 },
+    ];
+
+    const inserts = defaultWidgets.map((w) => ({
+      ...w,
+      page_id: pageId,
+      user_id: userId,
+      config: {},
+    }));
+
+    const { data: wData } = await supabase
+      .from("dashboard_widgets")
+      .insert(inserts)
+      .select("*");
+
+    const parsedPage: DashboardPage = {
+      id: pageData.id,
+      name: pageData.name,
+      order: pageData.order,
+      isDefault: pageData.is_default,
+    };
+    const parsedWidgets: DashboardWidget[] = (wData ?? []).map((r: any) => ({
+      id: r.id,
+      pageId: r.page_id,
+      widgetType: r.widget_type as WidgetType,
+      colSpan: r.col_span as WidgetColSpan,
+      rowSpan: r.row_span as WidgetRowSpan,
+      order: r.order,
+      config: r.config ?? {},
+    }));
+
+    set({ dashboardPages: [parsedPage], dashboardWidgets: parsedWidgets });
+  },
+
+  addPage: async (name) => {
+    const userId = await getUserId();
+    const { dashboardPages } = get();
+    const nextOrder = dashboardPages.length;
+    const { data, error } = await supabase
+      .from("dashboard_pages")
+      .insert({ user_id: userId, name, order: nextOrder, is_default: false })
+      .select("*")
+      .single();
+    if (error || !data) throw error;
+    const page: DashboardPage = { id: data.id, name: data.name, order: data.order, isDefault: data.is_default };
+    set((s) => ({ dashboardPages: [...s.dashboardPages, page] }));
+    return page;
+  },
+
+  renamePage: async (id, name) => {
+    const { error } = await supabase.from("dashboard_pages").update({ name }).eq("id", id);
+    if (error) throw error;
+    set((s) => ({ dashboardPages: s.dashboardPages.map((p) => (p.id === id ? { ...p, name } : p)) }));
+  },
+
+  deletePage: async (id) => {
+    const { error } = await supabase.from("dashboard_pages").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({
+      dashboardPages: s.dashboardPages.filter((p) => p.id !== id),
+      dashboardWidgets: s.dashboardWidgets.filter((w) => w.pageId !== id),
+    }));
+  },
+
+  reorderPages: async (ids) => {
+    const updates = ids.map((id, idx) =>
+      supabase.from("dashboard_pages").update({ order: idx }).eq("id", id)
+    );
+    await Promise.all(updates);
+    set((s) => ({
+      dashboardPages: [...s.dashboardPages]
+        .map((p) => ({ ...p, order: ids.indexOf(p.id) }))
+        .sort((a, b) => a.order - b.order),
+    }));
+  },
+
+  addWidget: async (pageId, widgetType, colSpan = 1, rowSpan = 1) => {
+    const userId = await getUserId();
+    const { dashboardWidgets } = get();
+    const pageWidgets = dashboardWidgets.filter((w) => w.pageId === pageId);
+    const nextOrder = pageWidgets.length;
+    const { data, error } = await supabase
+      .from("dashboard_widgets")
+      .insert({ page_id: pageId, user_id: userId, widget_type: widgetType, col_span: colSpan, row_span: rowSpan, order: nextOrder, config: {} })
+      .select("*")
+      .single();
+    if (error || !data) throw error;
+    const widget: DashboardWidget = {
+      id: data.id,
+      pageId: data.page_id,
+      widgetType: data.widget_type as WidgetType,
+      colSpan: data.col_span as WidgetColSpan,
+      rowSpan: data.row_span as WidgetRowSpan,
+      order: data.order,
+      config: data.config ?? {},
+    };
+    set((s) => ({ dashboardWidgets: [...s.dashboardWidgets, widget] }));
+    return widget;
+  },
+
+  removeWidget: async (id) => {
+    const { error } = await supabase.from("dashboard_widgets").delete().eq("id", id);
+    if (error) throw error;
+    set((s) => ({ dashboardWidgets: s.dashboardWidgets.filter((w) => w.id !== id) }));
+  },
+
+  reorderWidgets: async (pageId, orderedIds) => {
+    const updates = orderedIds.map((id, idx) =>
+      supabase.from("dashboard_widgets").update({ order: idx }).eq("id", id)
+    );
+    await Promise.all(updates);
+    set((s) => ({
+      dashboardWidgets: s.dashboardWidgets.map((w) =>
+        w.pageId === pageId ? { ...w, order: orderedIds.indexOf(w.id) } : w
+      ),
     }));
   },
 }));
