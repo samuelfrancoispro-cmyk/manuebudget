@@ -49,6 +49,42 @@ export const tiers: Tier[] = [
 
 export type FeatureValue = boolean | number | "unlimited" | string;
 
+export type FeatureKey =
+  | "comptes_courants"
+  | "comptes_epargne"
+  | "transactions_mois"
+  | "recurrentes"
+  | "objectifs"
+  | "projets"
+  | "categories_perso"
+  | "appareils_simultanes"
+  | "install_pwa"
+  | "dark_mode"
+  | "import_csv"
+  | "analyse_rapports"
+  | "export_excel"
+  | "export_json"
+  | "sync_bancaire"
+  | "categorisation_auto"
+  | "support"
+  | "trial";
+
+/** Retourne la valeur d'une feature pour un tier donné. */
+export function getFeatureValue(key: FeatureKey, tier: TierId): FeatureValue {
+  const feat = features.find((f) => f.key === key);
+  return feat ? feat.values[tier] : false;
+}
+
+/** Retourne le tier minimal qui débloque une feature (premier tier où la valeur est truthy/non-zéro). */
+export function getRequiredTier(key: FeatureKey): TierId {
+  const order: TierId[] = ["free", "plus", "pro"];
+  for (const tier of order) {
+    const val = getFeatureValue(key, tier);
+    if (val !== false && val !== 0) return tier;
+  }
+  return "pro";
+}
+
 export interface Feature {
   key: string;
   label: string;
