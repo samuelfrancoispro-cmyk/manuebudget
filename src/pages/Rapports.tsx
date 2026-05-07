@@ -35,6 +35,7 @@ import {
 } from "@/lib/csvParser";
 import type { BankProfile } from "@/types";
 import { formatEUR, monthLabel } from "@/lib/utils";
+import { UpgradeBadge } from "@/components/gate/UpgradeBadge";
 
 const CONFIDENCE_OK = 0.8;
 
@@ -269,10 +270,16 @@ export default function Rapports() {
               <Database className="h-4 w-4" />
               Profils
             </Button>
-            <Button onClick={() => fileInput.current?.click()}>
-              <Upload className="h-4 w-4" />
-              Importer CSV
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => fileInput.current?.click()}>
+                <Upload className="h-4 w-4" />
+                Importer CSV
+              </Button>
+              <UpgradeBadge featureKey="import_csv" />
+            </div>
+            <div className="flex items-center gap-2">
+              <UpgradeBadge featureKey="export_excel" />
+            </div>
             <input
               ref={fileInput}
               type="file"
