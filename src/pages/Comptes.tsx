@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { KPICard, EmptyState } from "@/components/brand";
 import {
   Dialog,
   DialogContent,
@@ -68,24 +69,21 @@ export default function ComptesPage({ embedded = false }: { embedded?: boolean }
         />
       )}
 
-      <Card className="mb-4">
-        <CardContent className="flex items-center justify-between p-4">
-          <div>
-            <div className="text-xs text-muted-foreground">Solde total (tous comptes)</div>
-            <div className={`text-3xl font-semibold ${totalAll >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              {formatEUR(totalAll)}
-            </div>
-          </div>
-          <Wallet className="h-8 w-8 text-muted-foreground" />
-        </CardContent>
-      </Card>
+      <div className="mb-4">
+        <KPICard
+          label="Solde total (tous comptes)"
+          value={formatEUR(totalAll)}
+          deltaTone={totalAll >= 0 ? "positive" : "negative"}
+          icon={<Wallet className="h-5 w-5" />}
+          className="max-w-xs"
+        />
+      </div>
 
       {comptesCourants.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Aucun compte. Crée-en un dans Paramètres.
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="Aucun compte"
+          description="Crée-en un dans Paramètres."
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {data.map(({ compte, solde, totaux }) => (
@@ -111,26 +109,26 @@ export default function ComptesPage({ embedded = false }: { embedded?: boolean }
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <div className="text-xs text-muted-foreground">Solde aujourd'hui</div>
+                  <div className="text-xs text-ink-muted">Solde aujourd'hui</div>
                   <div className={`text-2xl font-semibold ${solde >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                     {formatEUR(solde)}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div className="rounded-md border bg-muted/30 p-2">
-                    <div className="text-muted-foreground">Revenus mois</div>
+                  <div className="rounded-md border bg-surface/50 p-2">
+                    <div className="text-ink-muted">Revenus mois</div>
                     <div className="font-semibold text-emerald-600">
                       {formatEUR(totaux.revenus)}
                     </div>
                   </div>
-                  <div className="rounded-md border bg-muted/30 p-2">
-                    <div className="text-muted-foreground">Dépenses mois</div>
+                  <div className="rounded-md border bg-surface/50 p-2">
+                    <div className="text-ink-muted">Dépenses mois</div>
                     <div className="font-semibold text-rose-600">
                       {formatEUR(totaux.depenses)}
                     </div>
                   </div>
-                  <div className="rounded-md border bg-muted/30 p-2">
-                    <div className="text-muted-foreground flex items-center gap-1">
+                  <div className="rounded-md border bg-surface/50 p-2">
+                    <div className="text-ink-muted flex items-center gap-1">
                       <Coins className="h-3 w-3" /> Reste
                     </div>
                     <div
@@ -140,7 +138,7 @@ export default function ComptesPage({ embedded = false }: { embedded?: boolean }
                     </div>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-ink-muted">
                   Mois de référence : {monthLabel(moisCourant)}
                 </div>
               </CardContent>

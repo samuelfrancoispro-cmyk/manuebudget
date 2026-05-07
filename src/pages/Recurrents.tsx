@@ -12,7 +12,8 @@ import {
 } from "@/lib/calculs";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { KPICard, EmptyState } from "@/components/brand";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -123,29 +124,30 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
       )}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <Mini
+        <KPICard
           label="Revenus du mois (récurrents)"
-          valeur={formatEUR(totalMoisCourant.revenus)}
-          className="text-emerald-600"
+          value={formatEUR(totalMoisCourant.revenus)}
+          deltaTone="positive"
         />
-        <Mini
+        <KPICard
           label="Charges du mois (récurrents)"
-          valeur={formatEUR(totalMoisCourant.depenses)}
-          className="text-rose-600"
+          value={formatEUR(totalMoisCourant.depenses)}
+          deltaTone="negative"
         />
-        <Mini
+        <KPICard
           label="Net mensuel récurrent"
-          valeur={formatEUR(totalMoisCourant.solde)}
-          className={totalMoisCourant.solde >= 0 ? "text-emerald-600" : "text-rose-600"}
+          value={formatEUR(totalMoisCourant.solde)}
+          deltaTone={totalMoisCourant.solde >= 0 ? "positive" : "negative"}
         />
       </div>
 
       <Card>
         <CardContent className="p-0">
           {recurrentes.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              Aucun élément récurrent. Ajoute ton loyer, ton salaire, tes abonnements…
-            </p>
+            <EmptyState
+              title="Aucun élément récurrent"
+              description="Ajoute ton loyer, ton salaire, tes abonnements…"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -177,7 +179,7 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
                           {r.type === "revenu" ? "Revenu" : "Charge"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-ink-muted">
                         {cc?.nom ?? "—"}
                       </TableCell>
                       <TableCell>
@@ -189,10 +191,10 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
                           {cat?.nom ?? "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {labelFrequence(freq, intervalle)}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {proch ? formatDate(proch) : "Terminée"}
                       </TableCell>
                       <TableCell
@@ -249,21 +251,21 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
                           Virement épargne
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{cc?.nom ?? "—"}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-sm text-ink-muted">{cc?.nom ?? "—"}</TableCell>
+                      <TableCell className="text-xs text-ink-muted">
                         → {ce?.nom ?? "—"}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {labelFrequence(v.frequence, v.intervalle)}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {proch ? formatDate(proch) : "Terminé"}
                       </TableCell>
                       <TableCell className="text-right font-medium text-violet-600">
                         − {formatEUR(v.montant)}
                       </TableCell>
                       <TableCell className="pr-4 text-right">
-                        <span className="text-xs text-muted-foreground italic">auto</span>
+                        <span className="text-xs text-ink-muted italic">auto</span>
                       </TableCell>
                     </TableRow>
                   );
@@ -297,30 +299,6 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
         }}
       />
     </>
-  );
-}
-
-function Mini({
-  label,
-  valeur,
-  className,
-}: {
-  label: string;
-  valeur: string;
-  className?: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription>{label}</CardDescription>
-          <Repeat className="h-4 w-4 text-muted-foreground" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-xl font-semibold ${className ?? ""}`}>{valeur}</div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -504,7 +482,7 @@ function RecurrentForm({
               />
             </div>
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-ink-muted">
             → {labelFrequence(frequence, parseInt(intervalle) || 1)}
           </div>
           <div className="grid grid-cols-2 gap-3">

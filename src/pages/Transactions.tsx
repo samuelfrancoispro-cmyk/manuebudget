@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/brand";
 import {
   Dialog,
   DialogContent,
@@ -186,11 +187,14 @@ export default function TransactionsPage({ embedded = false }: { embedded?: bool
       <Card>
         <CardContent className="p-0">
           {filtrees.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              {comptesCourants.length === 0
-                ? "Crée d'abord un compte courant dans Paramètres."
-                : "Aucune transaction. Clique sur « Ajouter »."}
-            </p>
+            <EmptyState
+              title="Aucune transaction"
+              description={
+                comptesCourants.length === 0
+                  ? "Crée d'abord un compte courant dans Paramètres."
+                  : "Clique sur « Ajouter » pour saisir une transaction."
+              }
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -210,7 +214,7 @@ export default function TransactionsPage({ embedded = false }: { embedded?: bool
                   const cc = comptesCourants.find((c) => c.id === t.compteCourantId);
                   return (
                     <TableRow key={t.id}>
-                      <TableCell className="pl-4 text-muted-foreground">
+                      <TableCell className="pl-4 text-ink-muted">
                         {formatDate(t.date)}
                       </TableCell>
                       <TableCell>
@@ -218,7 +222,7 @@ export default function TransactionsPage({ embedded = false }: { embedded?: bool
                           {t.type === "revenu" ? "Revenu" : "Dépense"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-ink-muted">
                         {cc?.nom ?? "—"}
                       </TableCell>
                       <TableCell>
@@ -230,7 +234,7 @@ export default function TransactionsPage({ embedded = false }: { embedded?: bool
                           {cat?.nom ?? "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-ink-muted">
                         {t.description || "—"}
                       </TableCell>
                       <TableCell
@@ -281,7 +285,7 @@ export default function TransactionsPage({ embedded = false }: { embedded?: bool
 function Recap({ label, valeur, className }: { label: string; valeur: string; className?: string }) {
   return (
     <div className="text-right">
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs text-ink-muted">{label}</div>
       <div className={`font-semibold ${className ?? ""}`}>{valeur}</div>
     </div>
   );
