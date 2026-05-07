@@ -231,3 +231,36 @@ export interface Profile {
   stripeSubscriptionId: string | null;
   subscriptionStatus: "active" | "past_due" | "canceled" | null;
 }
+
+// === Workspace D1 ===
+
+export type WidgetType =
+  | 'kpi_solde'
+  | 'kpi_epargne'
+  | 'kpi_mensuel'
+  | 'kpi_previsionnel'
+  | 'chart_evolution'
+  | 'chart_forecast'
+  | 'chart_categories'
+  | 'list_prochaines'
+  | 'list_objectifs';
+
+export type WidgetColSpan = 1 | 2 | 4;
+export type WidgetRowSpan = 1 | 2;
+
+export interface DashboardPage {
+  id: string;
+  name: string;
+  order: number;
+  isDefault: boolean;
+}
+
+export interface DashboardWidget {
+  id: string;
+  pageId: string;
+  widgetType: WidgetType;
+  colSpan: WidgetColSpan;
+  rowSpan: WidgetRowSpan;
+  order: number;
+  config: Record<string, unknown>;
+}
