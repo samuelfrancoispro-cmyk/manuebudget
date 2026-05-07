@@ -227,4 +227,7 @@ export interface Profile {
   onboardingStep: number;
   tier: TierId;
   trialEndsAt: string | null;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  subscriptionStatus: "active" | "past_due" | "canceled" | null;
 }
