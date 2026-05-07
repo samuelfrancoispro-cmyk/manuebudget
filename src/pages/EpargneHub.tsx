@@ -5,8 +5,8 @@ import { useStore } from "@/store/useStore";
 import { totalEpargne } from "@/lib/calculs";
 import { formatEUR } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { KPICard } from "@/components/brand";
 import Epargne from "./Epargne";
 import Simulateur from "./Simulateur";
 import VirementsRecurrentsTab from "@/components/VirementsRecurrentsTab";
@@ -37,19 +37,17 @@ export default function EpargneHub() {
       <PageHeader
         title={t("epargne.title")}
         description={t("epargne.description")}
-        action={
-          <Badge variant="outline" className="px-3 py-1.5 text-base">
-            Total épargne :{" "}
-            <span className="ml-1.5 font-semibold">{formatEUR(total)}</span>
-          </Badge>
-        }
       />
+
+      <div className="mb-6">
+        <KPICard label="Total épargne" value={formatEUR(total)} className="max-w-xs" />
+      </div>
 
       <Tabs value={initial} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="epargne">Comptes & objectifs</TabsTrigger>
+          <TabsTrigger value="epargne">Comptes &amp; objectifs</TabsTrigger>
           <TabsTrigger value="virements">Virements automatiques</TabsTrigger>
-          <TabsTrigger value="simulateur">Simulateur & projets</TabsTrigger>
+          <TabsTrigger value="simulateur">Simulateur &amp; projets</TabsTrigger>
         </TabsList>
 
         <TabsContent value="epargne" className="mt-4">

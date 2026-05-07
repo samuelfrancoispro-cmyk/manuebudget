@@ -8,6 +8,7 @@ import { simulerProjet, totalAchatsProjet } from "@/lib/calculs";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/brand";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -179,7 +180,7 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
                       valeur={formatEUR(resTest.capitalFinal)}
                     />
                     <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
+                      <div className="flex justify-between text-xs text-ink-muted">
                         <span>Apport initial</span>
                         <span>{formatEUR(projetTest.apportInitial)}</span>
                       </div>
@@ -225,11 +226,10 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
             </Button>
           </div>
           {projets.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                Aucun projet enregistré. Crée-en un pour simuler les achats un par un.
-              </CardContent>
-            </Card>
+            <EmptyState
+              title="Aucun projet enregistré"
+              description="Crée-en un pour simuler les achats un par un."
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {projets.map((p) => {
@@ -242,7 +242,7 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <Calculator className="h-4 w-4 text-muted-foreground" />
+                          <Calculator className="h-4 w-4 text-ink-muted" />
                           <CardTitle>{p.nom}</CardTitle>
                         </div>
                         <div className="flex gap-1">
@@ -276,11 +276,11 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Cible</span>
+                        <span className="text-sm text-ink-muted">Cible</span>
                         <span className="font-semibold">{formatEUR(p.montantCible)}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Durée estimée</span>
+                        <span className="text-sm text-ink-muted">Durée estimée</span>
                         <span className="font-semibold">
                           {r.atteignable ? formaterDuree(r.moisNecessaires) : "—"}
                         </span>
@@ -294,19 +294,19 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
                           </Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="rounded border bg-muted/30 p-2">
-                            <div className="text-muted-foreground">Effectués</div>
+                          <div className="rounded border bg-surface/50 p-2">
+                            <div className="text-ink-muted">Effectués</div>
                             <div className="font-semibold text-emerald-600">
                               {formatEUR(tot.effectue)}
                             </div>
                           </div>
-                          <div className="rounded border bg-muted/30 p-2">
-                            <div className="text-muted-foreground">Prévus</div>
+                          <div className="rounded border bg-surface/50 p-2">
+                            <div className="text-ink-muted">Prévus</div>
                             <div className="font-semibold">{formatEUR(tot.prevu)}</div>
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-muted-foreground">
+                          <div className="flex justify-between text-xs text-ink-muted">
                             <span>Cumul achats / cible</span>
                             <span>
                               {formatEUR(tot.total)} / {formatEUR(p.montantCible)}
@@ -461,9 +461,11 @@ function AchatsDialog({
 
         <div className="rounded-md border">
           {achatsTries.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Aucun achat. Ajoute le premier ci-dessous.
-            </p>
+            <EmptyState
+              title="Aucun achat"
+              description="Ajoute le premier ci-dessous."
+              className="rounded-none border-none py-8"
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -478,13 +480,13 @@ function AchatsDialog({
               <TableBody>
                 {achatsTries.map((a) => (
                   <TableRow key={a.id}>
-                    <TableCell className="pl-4 text-muted-foreground">
+                    <TableCell className="pl-4 text-ink-muted">
                       {formatDate(a.date)}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{a.libelle}</div>
                       {a.description && (
-                        <div className="text-xs text-muted-foreground">{a.description}</div>
+                        <div className="text-xs text-ink-muted">{a.description}</div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -505,7 +507,7 @@ function AchatsDialog({
                           onClick={() => toggleAchatValide(a.id)}
                           title={a.valide ? "Marquer prévu" : "Marquer effectué"}
                         >
-                          <Check className={`h-4 w-4 ${a.valide ? "text-emerald-600" : "text-muted-foreground"}`} />
+                          <Check className={`h-4 w-4 ${a.valide ? "text-emerald-600" : "text-ink-muted"}`} />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => ouvrirEdit(a)}>
                           <Pencil className="h-4 w-4" />
@@ -599,8 +601,8 @@ function AchatsDialog({
 
 function Mini({ label, valeur, className }: { label: string; valeur: string; className?: string }) {
   return (
-    <div className="rounded-md border bg-muted/30 p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
+    <div className="rounded-md border bg-surface/50 p-3">
+      <div className="text-xs text-ink-muted">{label}</div>
       <div className={`text-lg font-semibold ${className ?? ""}`}>{valeur}</div>
     </div>
   );
@@ -619,7 +621,7 @@ function ResultatLigne({
 }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{titre}</div>
+      <div className="text-xs text-ink-muted">{titre}</div>
       <div
         className={`${gros ? "text-2xl" : "text-lg"} font-semibold ${
           accent ? "text-emerald-600" : ""
@@ -651,7 +653,7 @@ function EvolutionTable({
           <div key={e.mois}>
             <div className="mb-1 flex items-center justify-between text-sm">
               <span className="font-medium">An {annee}</span>
-              <span className="text-muted-foreground">
+              <span className="text-ink-muted">
                 {formatEUR(e.capital)} <span className="text-xs">(versé {formatEUR(e.verse)})</span>
               </span>
             </div>

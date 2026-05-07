@@ -30,6 +30,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyState } from "@/components/brand";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -127,11 +128,10 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
             </Button>
           </div>
           {comptes.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                Aucun compte d'épargne. Crée-en un pour commencer.
-              </CardContent>
-            </Card>
+            <EmptyState
+              title="Aucun compte d'épargne"
+              description="Crée-en un pour commencer."
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {comptes.map((c) => {
@@ -194,7 +194,7 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                       {isBoursier ? (
                         <div className="space-y-1">
                           <div className="text-2xl font-semibold">{formatEUR(solde)}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-ink-muted">
                             {actifsCpte.length > 0
                               ? `${actifsCpte.length} position${actifsCpte.length > 1 ? "s" : ""}`
                               : "Cash uniquement"}
@@ -215,7 +215,7 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                         <div className="text-2xl font-semibold">{formatEUR(solde)}</div>
                       )}
                       {c.description && (
-                        <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>
+                        <p className="mt-1 text-sm text-ink-muted">{c.description}</p>
                       )}
 
                       {/* Positions boursières */}
@@ -229,8 +229,8 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                               <div key={a.id} className="flex items-center justify-between px-2 py-1.5">
                                 <div>
                                   <span className="font-medium">{a.nom}</span>
-                                  {a.isin && <span className="ml-1.5 text-muted-foreground">{a.isin}</span>}
-                                  <div className="text-muted-foreground">
+                                  {a.isin && <span className="ml-1.5 text-ink-muted">{a.isin}</span>}
+                                  <div className="text-ink-muted">
                                     {a.quantite} × {formatEUR(a.prixAchat)} = {formatEUR(valAchat)}
                                   </div>
                                 </div>
@@ -298,11 +298,10 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
             </Button>
           </div>
           {objectifs.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                Aucun objectif. Définis-en un (voyage, achat, fonds d'urgence...).
-              </CardContent>
-            </Card>
+            <EmptyState
+              title="Aucun objectif"
+              description="Définis-en un (voyage, achat, fonds d'urgence...)."
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {objectifs.map((o) => {
@@ -314,7 +313,7 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <Target className="h-4 w-4 text-muted-foreground" />
+                          <Target className="h-4 w-4 text-ink-muted" />
                           <CardTitle>{o.nom}</CardTitle>
                         </div>
                         <div className="flex gap-1">
@@ -333,15 +332,17 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                     <CardContent>
                       <div className="mb-2 flex items-end justify-between">
                         <span className="text-2xl font-semibold">{formatEUR(actuel)}</span>
-                        <span className="text-sm text-muted-foreground">/ {formatEUR(o.montantCible)}</span>
+                        <span className="text-sm text-ink-muted">/ {formatEUR(o.montantCible)}</span>
                       </div>
-                      <Progress value={pct} />
-                      <div className="mt-2 flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{pct.toFixed(1)}% atteint</span>
-                        <span className="font-medium">Reste {formatEUR(restant)}</span>
+                      <div className="space-y-1">
+                        <Progress value={pct} className="h-1.5" />
+                        <div className="flex justify-between text-xs text-ink-muted">
+                          <span>{pct.toFixed(1)}% atteint</span>
+                          <span>Reste {formatEUR(restant)}</span>
+                        </div>
                       </div>
                       {o.dateCible && (
-                        <p className="mt-2 text-xs text-muted-foreground">Cible : {formatDate(o.dateCible)}</p>
+                        <p className="mt-2 text-xs text-ink-muted">Cible : {formatDate(o.dateCible)}</p>
                       )}
                     </CardContent>
                   </Card>
@@ -355,9 +356,9 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
           <Card>
             <CardContent className="p-0">
               {mouvements.length === 0 ? (
-                <p className="py-12 text-center text-sm text-muted-foreground">
-                  Aucun mouvement enregistré.
-                </p>
+                <EmptyState
+                  title="Aucun mouvement enregistré"
+                />
               ) : (
                 <div className="divide-y">
                   {[...mouvements]
@@ -369,7 +370,7 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                       return (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between px-4 py-3 hover:bg-muted/30"
+                          className="flex items-center justify-between px-4 py-3 hover:bg-surface/50"
                         >
                           <div className="flex items-center gap-3">
                             {isPositif ? (
@@ -380,12 +381,12 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
                             <div>
                               <div className="flex items-center gap-1.5 text-sm font-medium">
                                 {compte?.nom ?? "—"}{" "}
-                                <span className="font-normal text-muted-foreground">· {m.type}</span>
+                                <span className="font-normal text-ink-muted">· {m.type}</span>
                                 {isVirtuel && (
                                   <Badge variant="outline" className="text-[10px] py-0">auto</Badge>
                                 )}
                               </div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-ink-muted">
                                 {formatDate(m.date)}
                                 {m.description ? ` · ${m.description}` : ""}
                               </div>
@@ -576,7 +577,7 @@ function CompteForm({
                   value={fondEuros}
                   onChange={(e) => setFondEuros(e.target.value)}
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-ink-muted">
                   Liquidités non investies. Les positions s'ajoutent ensuite.
                 </p>
               </div>
@@ -598,7 +599,7 @@ function CompteForm({
                 value={dateReference}
                 onChange={(e) => setDateReference(e.target.value)}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-ink-muted">
                 Date où ce solde est constaté. Avant = historique informatif.
               </p>
             </div>
@@ -611,14 +612,14 @@ function CompteForm({
                   <button
                     type="button"
                     onClick={() => setModeTaux("annuel")}
-                    className={`px-2 py-1 rounded-l-md ${modeTaux === "annuel" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                    className={`px-2 py-1 rounded-l-md ${modeTaux === "annuel" ? "bg-ink text-paper" : "hover:bg-surface"}`}
                   >
                     Annuel
                   </button>
                   <button
                     type="button"
                     onClick={() => setModeTaux("mensuel")}
-                    className={`px-2 py-1 rounded-r-md ${modeTaux === "mensuel" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                    className={`px-2 py-1 rounded-r-md ${modeTaux === "mensuel" ? "bg-ink text-paper" : "hover:bg-surface"}`}
                   >
                     Mensuel
                   </button>
@@ -632,7 +633,7 @@ function CompteForm({
                 placeholder={modeTaux === "annuel" ? "Ex : 3 (% / an)" : "Ex : 0.25 (% / mois)"}
               />
               {parseFloat(taux) > 0 && (
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-ink-muted">
                   {modeTaux === "annuel"
                     ? `≈ ${tauxMensuelCalcule.toFixed(3)}% / mois`
                     : `≈ ${tauxAnnuelCalcule.toFixed(3)}% / an`}
@@ -937,13 +938,13 @@ function ActifForm({
             <Input type="date" value={dateAchat} onChange={(e) => setDateAchat(e.target.value)} />
           </div>
           {valAchat > 0 && (
-            <div className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              Valeur d'achat : <span className="font-medium text-foreground">{formatEUR(valAchat)}</span>
+            <div className="rounded-md bg-surface/60 px-3 py-2 text-xs text-ink-muted">
+              Valeur d'achat : <span className="font-medium text-ink">{formatEUR(valAchat)}</span>
             </div>
           )}
 
           <div className="border-t pt-3">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
               Prix actuel (optionnel — pour calculer la plus-value)
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -966,7 +967,7 @@ function ActifForm({
               <div className={`mt-2 flex items-center gap-2 text-sm font-medium ${plusValue >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                 {plusValue >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 Plus-value latente : {plusValue >= 0 ? "+" : ""}{formatEUR(plusValue)}
-                {valAchat > 0 && <span className="text-xs font-normal text-muted-foreground">({((plusValue / valAchat) * 100).toFixed(1)}%)</span>}
+                {valAchat > 0 && <span className="text-xs font-normal text-ink-muted">({((plusValue / valAchat) * 100).toFixed(1)}%)</span>}
               </div>
             )}
           </div>
