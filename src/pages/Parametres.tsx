@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
 import { useStore } from "@/store/useStore";
 import type { Categorie, CompteCourant, TypeCompteCourant, TypeTransaction } from "@/types";
 import { formatEUR, todayISO, cn } from "@/lib/utils";
-import { tiers, features, formatTierPrice } from "@/lib/pricing";
+import { tiers, features } from "@/lib/pricing";
 import type { TierId } from "@/lib/pricing";
-import { createCheckoutSession, createPortalSession } from "@/lib/stripe";
+import { setTierDirect } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { SectionHeader, DataRow } from "@/components/brand";
@@ -51,45 +50,20 @@ export default function ParametresPage() {
 
   const profile = useStore((s) => s.profile);
   const loadProfile = useStore((s) => s.loadProfile);
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
-  const [checkoutLoading, setCheckoutLoading] = useState<"plus" | "pro" | null>(null);
-  const [portalLoading, setPortalLoading] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [tierSaving, setTierSaving] = useState<TierId | null>(null);
 
-  useEffect(() => {
-    const checkout = searchParams.get("checkout");
-    if (checkout === "success") {
-      toast.success(t("subscription.checkoutSuccess"));
-      setTimeout(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) await loadProfile(user.id);
-      }, 2000);
-      setSearchParams({});
-    } else if (checkout === "cancel") {
-      toast.info(t("subscription.checkoutCancel"));
-      setSearchParams({});
-    }
-  }, [searchParams]);
-
-  const handleUpgrade = async (tierId: "plus" | "pro") => {
-    setCheckoutLoading(tierId);
+  const handleSetTier = async (tierId: TierId) => {
+    if (tierId === profile?.tier) return;
+    setTierSaving(tierId);
     try {
-      const { url } = await createCheckoutSession(tierId, period);
-      window.location.href = url;
+      await setTierDirect(tierId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await loadProfile(user.id);
+      toast.success(tierId === "free" ? "Plan gratuit activé" : `Plan ${tiers.find(t => t.id === tierId)?.name} activé`);
     } catch {
       toast.error(t("common.error"));
-      setCheckoutLoading(null);
-    }
-  };
-
-  const handlePortalSubscription = async () => {
-    setPortalLoading(true);
-    try {
-      const { url } = await createPortalSession();
-      window.location.href = url;
-    } catch {
-      toast.error(t("common.error"));
-      setPortalLoading(false);
+    } finally {
+      setTierSaving(null);
     }
   };
 
@@ -104,10 +78,6 @@ export default function ParametresPage() {
     }
     return t("subscription.statusFree");
   })();
-
-  const isSubscribed =
-    profile?.subscriptionStatus === "active" ||
-    profile?.subscriptionStatus === "past_due";
 
   const tierName = tiers.find((ti) => ti.id === (profile?.tier ?? "free"))?.name ?? "Gratuit";
 
@@ -355,62 +325,26 @@ export default function ParametresPage() {
 
           <KPICard label={tierName} value={subscriptionLabel} />
 
-          {!isSubscribed && (
-            <div className="flex items-center gap-2 text-sm">
-              <button
-                type="button"
-                onClick={() => setPeriod("monthly")}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 font-medium transition-colors",
-                  period === "monthly" ? "bg-ink text-paper" : "text-ink-muted hover:text-ink"
-                )}
-              >
-                {t("subscription.periodMonthly")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPeriod("yearly")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium transition-colors",
-                  period === "yearly" ? "bg-ink text-paper" : "text-ink-muted hover:text-ink"
-                )}
-              >
-                {t("subscription.periodYearly")}
-                <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-xs text-green-700 dark:bg-green-900 dark:text-green-300">
-                  {t("subscription.yearlySaving", { pct: 33 })}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {isSubscribed ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePortalSubscription}
-              disabled={portalLoading}
-            >
-              {portalLoading ? t("subscription.portalLoading") : t("subscription.manageSubscription")}
-            </Button>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                onClick={() => handleUpgrade("plus")}
-                disabled={checkoutLoading !== null}
-              >
-                {checkoutLoading === "plus" ? t("subscription.loading") : t("subscription.upgradePlus")}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleUpgrade("pro")}
-                disabled={checkoutLoading !== null}
-              >
-                {checkoutLoading === "pro" ? t("subscription.loading") : t("subscription.upgradePro")}
-              </Button>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {tiers.map((ti) => {
+              const isActive = profile?.tier === ti.id;
+              return (
+                <Button
+                  key={ti.id}
+                  size="sm"
+                  variant={isActive ? "default" : "outline"}
+                  disabled={tierSaving !== null}
+                  onClick={() => handleSetTier(ti.id as TierId)}
+                >
+                  {tierSaving === ti.id ? "…" : ti.name}
+                  {isActive && " ✓"}
+                </Button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-ink-muted">
+            Mode test — paiement Stripe sera activé au lancement.
+          </p>
 
           <div className="space-y-1">
             {features
