@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useStore } from "@/store/useStore";
 import type { Categorie, CompteCourant, TypeCompteCourant, TypeTransaction } from "@/types";
-import { formatEUR, todayISO } from "@/lib/utils";
+import { formatEUR, todayISO, cn } from "@/lib/utils";
+import { tiers, features, formatTierPrice } from "@/lib/pricing";
+import type { TierId } from "@/lib/pricing";
+import { createCheckoutSession, createPortalSession } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { SectionHeader, DataRow } from "@/components/brand";
+import { KPICard } from "@/components/brand/KPICard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,6 +47,68 @@ export default function ParametresPage() {
   // Comptes courants
   const [ccOpen, setCcOpen] = useState(false);
   const [ccEdit, setCcEdit] = useState<CompteCourant | null>(null);
+
+  const profile = useStore((s) => s.profile);
+  const loadProfile = useStore((s) => s.loadProfile);
+  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [checkoutLoading, setCheckoutLoading] = useState<"plus" | "pro" | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    if (checkout === "success") {
+      toast.success(t("subscription.checkoutSuccess"));
+      setTimeout(async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) await loadProfile(user.id);
+      }, 2000);
+      setSearchParams({});
+    } else if (checkout === "cancel") {
+      toast.info(t("subscription.checkoutCancel"));
+      setSearchParams({});
+    }
+  }, [searchParams]);
+
+  const handleUpgrade = async (tierId: "plus" | "pro") => {
+    setCheckoutLoading(tierId);
+    try {
+      const { url } = await createCheckoutSession(tierId, period);
+      window.location.href = url;
+    } catch {
+      toast.error(t("common.error"));
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handlePortalSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { url } = await createPortalSession();
+      window.location.href = url;
+    } catch {
+      toast.error(t("common.error"));
+      setPortalLoading(false);
+    }
+  };
+
+  const subscriptionLabel = (() => {
+    if (!profile) return "";
+    if (profile.subscriptionStatus === "active") return t("subscription.statusActive");
+    if (profile.subscriptionStatus === "past_due") return t("subscription.statusPastDue");
+    if (profile.subscriptionStatus === "canceled") return t("subscription.statusCanceled");
+    if (profile.trialEndsAt && new Date(profile.trialEndsAt) > new Date()) {
+      const days = Math.ceil((new Date(profile.trialEndsAt).getTime() - Date.now()) / 86400000);
+      return t("subscription.trialActive", { days });
+    }
+    return t("subscription.statusFree");
+  })();
+
+  const isSubscribed =
+    profile?.subscriptionStatus === "active" ||
+    profile?.subscriptionStatus === "past_due";
+
+  const tierName = tiers.find((ti) => ti.id === (profile?.tier ?? "free"))?.name ?? "Gratuit";
 
   const ajouter = () => {
     if (!nom.trim()) return toast.error("Nom requis");
@@ -277,6 +345,84 @@ export default function ParametresPage() {
             <DataRow label="Projets" value={store.projets.length} />
           </CardContent>
         </Card>
+
+        {/* ── Section Abonnement ── */}
+        <section id="abonnement" className="space-y-4 scroll-mt-20">
+          <SectionHeader title={t("subscription.sectionTitle")} />
+
+          <KPICard label={tierName} value={subscriptionLabel} />
+
+          {!isSubscribed && (
+            <div className="flex items-center gap-2 text-sm">
+              <button
+                type="button"
+                onClick={() => setPeriod("monthly")}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 font-medium transition-colors",
+                  period === "monthly" ? "bg-ink text-paper" : "text-ink-muted hover:text-ink"
+                )}
+              >
+                {t("subscription.periodMonthly")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPeriod("yearly")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium transition-colors",
+                  period === "yearly" ? "bg-ink text-paper" : "text-ink-muted hover:text-ink"
+                )}
+              >
+                {t("subscription.periodYearly")}
+                <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-xs text-green-700 dark:bg-green-900 dark:text-green-300">
+                  {t("subscription.yearlySaving", { pct: 33 })}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {isSubscribed ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePortalSubscription}
+              disabled={portalLoading}
+            >
+              {portalLoading ? t("subscription.portalLoading") : t("subscription.manageSubscription")}
+            </Button>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => handleUpgrade("plus")}
+                disabled={checkoutLoading !== null}
+              >
+                {checkoutLoading === "plus" ? t("subscription.loading") : t("subscription.upgradePlus")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleUpgrade("pro")}
+                disabled={checkoutLoading !== null}
+              >
+                {checkoutLoading === "pro" ? t("subscription.loading") : t("subscription.upgradePro")}
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            {features
+              .filter((f) => f.section !== "support")
+              .map((f) => {
+                const val = f.values[profile?.tier ?? "free"];
+                const displayVal =
+                  val === true ? "✓" :
+                  val === false ? "—" :
+                  val === "unlimited" ? "∞" :
+                  String(val);
+                return <DataRow key={f.key} label={f.label} value={displayVal} />;
+              })}
+          </div>
+        </section>
       </div>
 
       <CompteCourantForm
