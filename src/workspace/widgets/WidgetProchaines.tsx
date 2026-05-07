@@ -5,7 +5,7 @@ import { prochaineOccurrence } from "@/lib/calculs";
 import { formatEUR, formatDate } from "@/lib/utils";
 import type { TransactionRecurrente, VirementRecurrent, CompteEpargne } from "@/types";
 
-export function WidgetProchaines() {
+export function WidgetProchaines(_props: { config: Record<string, unknown> }) {
   const { recurrentes, virementsRecurrents, comptesCourants, comptes } = useStore();
 
   const prochaines = useMemo(() => {

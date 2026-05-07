@@ -1,11 +1,15 @@
+import { useMemo } from "react";
 import { PiggyBank } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { totalEpargne } from "@/lib/calculs";
 import { formatEUR } from "@/lib/utils";
 
-export function WidgetEpargne() {
+export function WidgetEpargne(_props: { config: Record<string, unknown> }) {
   const { comptes, mouvements, virementsRecurrents, actifs } = useStore();
-  const total = totalEpargne(comptes, mouvements, virementsRecurrents, actifs);
+  const total = useMemo(
+    () => totalEpargne(comptes, mouvements, virementsRecurrents, actifs),
+    [comptes, mouvements, virementsRecurrents, actifs]
+  );
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">

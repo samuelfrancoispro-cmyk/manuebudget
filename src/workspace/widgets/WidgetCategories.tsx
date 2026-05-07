@@ -3,7 +3,7 @@ import { useStore } from "@/store/useStore";
 import { depensesParCategorie, totauxMois } from "@/lib/calculs";
 import { formatEUR, monthKey } from "@/lib/utils";
 
-export function WidgetCategories() {
+export function WidgetCategories(_props: { config: Record<string, unknown> }) {
   const { transactions, recurrentes, virementsRecurrents, comptes, categories } = useStore();
   const mois = monthKey(new Date().toISOString());
 

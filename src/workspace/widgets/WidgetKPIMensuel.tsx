@@ -4,7 +4,7 @@ import { useStore } from "@/store/useStore";
 import { totauxMois } from "@/lib/calculs";
 import { formatEUR, monthKey } from "@/lib/utils";
 
-export function WidgetKPIMensuel() {
+export function WidgetKPIMensuel(_props: { config: Record<string, unknown> }) {
   const { transactions, recurrentes, virementsRecurrents, comptes } = useStore();
   const mois = monthKey(new Date().toISOString());
   const totaux = useMemo(

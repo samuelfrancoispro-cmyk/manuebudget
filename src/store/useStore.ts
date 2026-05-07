@@ -866,6 +866,8 @@ export const useStore = create<State>()((set, get) => ({
   },
 
   deletePage: async (id) => {
+    const page = get().dashboardPages.find((p) => p.id === id);
+    if (!page || page.isDefault) throw new Error("Impossible de supprimer la page par défaut");
     const { error } = await supabase.from("dashboard_pages").delete().eq("id", id);
     if (error) throw error;
     set((s) => ({

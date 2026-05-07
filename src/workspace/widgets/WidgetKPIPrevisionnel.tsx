@@ -4,7 +4,7 @@ import { useStore } from "@/store/useStore";
 import { totauxPrevisionnels } from "@/lib/calculs";
 import { formatEUR, monthKey } from "@/lib/utils";
 
-export function WidgetKPIPrevisionnel() {
+export function WidgetKPIPrevisionnel(_props: { config: Record<string, unknown> }) {
   const { recurrentes, virementsRecurrents, comptes } = useStore();
   const mois = monthKey(new Date().toISOString());
   const totaux = useMemo(

@@ -4,7 +4,7 @@ import { useStore } from "@/store/useStore";
 import { soldeCompteCourant } from "@/lib/calculs";
 import { formatEUR } from "@/lib/utils";
 
-export function WidgetSolde() {
+export function WidgetSolde(_props: { config: Record<string, unknown> }) {
   const { comptesCourants, transactions, recurrentes, virementsRecurrents, comptes } = useStore();
   const soldeTotal = useMemo(
     () => comptesCourants.reduce((sum, c) => sum + soldeCompteCourant(c, transactions, recurrentes, undefined, virementsRecurrents, comptes), 0),

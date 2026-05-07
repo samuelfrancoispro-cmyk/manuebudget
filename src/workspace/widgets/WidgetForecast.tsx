@@ -11,7 +11,7 @@ function moisSuiv(mois: string, n: number): string {
   return `${yy.toString().padStart(4, "0")}-${String(mm).padStart(2, "0")}`;
 }
 
-export function WidgetForecast() {
+export function WidgetForecast(_props: { config: Record<string, unknown> }) {
   const { recurrentes, virementsRecurrents, comptes } = useStore();
   const mois = monthKey(new Date().toISOString());
 

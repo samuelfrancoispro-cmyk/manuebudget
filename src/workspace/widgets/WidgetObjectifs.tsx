@@ -3,7 +3,7 @@ import { soldeCompte } from "@/lib/calculs";
 import { formatEUR } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 
-export function WidgetObjectifs() {
+export function WidgetObjectifs(_props: { config: Record<string, unknown> }) {
   const { objectifs, comptes, mouvements, virementsRecurrents } = useStore();
   const top = objectifs.slice(0, 4);
 
