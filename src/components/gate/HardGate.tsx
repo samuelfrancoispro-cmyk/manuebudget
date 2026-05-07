@@ -30,7 +30,6 @@ export function HardGate({ featureKey, current, children }: HardGateProps) {
               ? t("gate.limitReached", { current, limit })
               : t("gate.upgradeTo", { tier: tierName })}
           </p>
-          <p className="text-xs">{t("gate.upgradeTo", { tier: tierName })}</p>
           <Button
             size="sm"
             variant="outline"
