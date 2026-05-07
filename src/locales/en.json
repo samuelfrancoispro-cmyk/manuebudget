@@ -126,6 +126,7 @@
       "description": "You can change your plan at any time.",
       "ctaFree": "Get started for free",
       "ctaTrial": "Try free for 14 days",
+      "skipFree": "Continue with the free plan",
       "saving": "Saving…",
       "free": "Free",
       "highlights": {
@@ -316,5 +317,35 @@
       "terms": "Terms of use",
       "privacy": "Privacy policy"
     }
+  },
+  "gate": {
+    "limitReached": "Limit reached ({{current}} / {{limit}})",
+    "upgradeTo": "Upgrade to {{tier}} to continue",
+    "seePlans": "See plans",
+    "availableIn": "Available in {{tier}}"
+  },
+  "subscription": {
+    "trialExpiredBanner": "Your free trial has expired.",
+    "trialExpiredCta": "See plans →",
+    "pastDueBanner": "Payment failed — access temporarily maintained.",
+    "pastDueCta": "Update your card →",
+    "trialActive": "Trial — {{days}} days left",
+    "statusActive": "Active",
+    "statusCanceled": "Canceled",
+    "statusPastDue": "Payment failed",
+    "statusFree": "Free",
+    "renewsOn": "Next renewal: {{date}}",
+    "manageSubscription": "Manage subscription",
+    "upgradePlus": "Upgrade to Plus",
+    "upgradePro": "Upgrade to Pro",
+    "addCard": "Add payment method",
+    "periodMonthly": "Monthly",
+    "periodYearly": "Yearly",
+    "yearlySaving": "−{{pct}}%",
+    "checkoutSuccess": "Subscription activated, welcome!",
+    "checkoutCancel": "Payment canceled.",
+    "loading": "Redirecting to payment…",
+    "portalLoading": "Opening portal…",
+    "sectionTitle": "Subscription"
   }
 }

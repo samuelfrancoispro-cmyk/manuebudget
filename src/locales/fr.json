@@ -126,6 +126,7 @@
       "description": "Vous pouvez changer de formule à tout moment.",
       "ctaFree": "Commencer gratuitement",
       "ctaTrial": "Essayer 14 jours gratuit",
+      "skipFree": "Continuer avec la version gratuite",
       "saving": "Enregistrement…",
       "free": "Gratuit",
       "highlights": {
@@ -316,5 +317,35 @@
       "terms": "Conditions d'utilisation",
       "privacy": "Politique de confidentialité"
     }
+  },
+  "gate": {
+    "limitReached": "Limite atteinte ({{current}} / {{limit}})",
+    "upgradeTo": "Passez à {{tier}} pour continuer",
+    "seePlans": "Voir les formules",
+    "availableIn": "Disponible en {{tier}}"
+  },
+  "subscription": {
+    "trialExpiredBanner": "Votre essai gratuit a expiré.",
+    "trialExpiredCta": "Voir les formules →",
+    "pastDueBanner": "Paiement échoué — accès maintenu temporairement.",
+    "pastDueCta": "Mettre à jour ma carte →",
+    "trialActive": "Essai — {{days}} jours restants",
+    "statusActive": "Actif",
+    "statusCanceled": "Résilié",
+    "statusPastDue": "Paiement échoué",
+    "statusFree": "Gratuit",
+    "renewsOn": "Prochain renouvellement : {{date}}",
+    "manageSubscription": "Gérer mon abonnement",
+    "upgradePlus": "Passer Plus",
+    "upgradePro": "Passer Pro",
+    "addCard": "Ajouter une carte de paiement",
+    "periodMonthly": "Mensuel",
+    "periodYearly": "Annuel",
+    "yearlySaving": "−{{pct}} %",
+    "checkoutSuccess": "Abonnement activé, bienvenue !",
+    "checkoutCancel": "Paiement annulé.",
+    "loading": "Redirection vers le paiement…",
+    "portalLoading": "Ouverture du portail…",
+    "sectionTitle": "Abonnement"
   }
 }
