@@ -31,6 +31,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/brand";
+import { HardGate } from "@/components/gate/HardGate";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -117,15 +118,17 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
 
         <TabsContent value="comptes" className="space-y-4">
           <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                setEditCompte(null);
-                setDlgCompte(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              Nouveau compte
-            </Button>
+            <HardGate featureKey="comptes_epargne" current={comptes.length}>
+              <Button
+                onClick={() => {
+                  setEditCompte(null);
+                  setDlgCompte(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Nouveau compte
+              </Button>
+            </HardGate>
           </div>
           {comptes.length === 0 ? (
             <EmptyState
@@ -290,12 +293,14 @@ export default function EpargnePage({ embedded = false }: { embedded?: boolean }
 
         <TabsContent value="objectifs" className="space-y-4">
           <div className="flex justify-end">
-            <Button
-              onClick={() => { setEditObj(null); setDlgObj(true); }}
-            >
-              <Plus className="h-4 w-4" />
-              Nouvel objectif
-            </Button>
+            <HardGate featureKey="objectifs" current={objectifs.length}>
+              <Button
+                onClick={() => { setEditObj(null); setDlgObj(true); }}
+              >
+                <Plus className="h-4 w-4" />
+                Nouvel objectif
+              </Button>
+            </HardGate>
           </div>
           {objectifs.length === 0 ? (
             <EmptyState

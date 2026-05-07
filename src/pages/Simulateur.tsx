@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/brand";
+import { HardGate } from "@/components/gate/HardGate";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -215,15 +216,17 @@ export default function SimulateurPage({ embedded = false }: { embedded?: boolea
 
         <TabsContent value="enregistres" className="space-y-4">
           <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                setEdit(null);
-                setOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              Nouveau projet
-            </Button>
+            <HardGate featureKey="projets" current={projets.length}>
+              <Button
+                onClick={() => {
+                  setEdit(null);
+                  setOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Nouveau projet
+              </Button>
+            </HardGate>
           </div>
           {projets.length === 0 ? (
             <EmptyState

@@ -12,6 +12,7 @@ import { createCheckoutSession, createPortalSession } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/PageHeader";
 import { SectionHeader, DataRow } from "@/components/brand";
+import { HardGate } from "@/components/gate/HardGate";
 import { KPICard } from "@/components/brand/KPICard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -183,15 +184,17 @@ export default function ParametresPage() {
                   Plusieurs comptes : perso, joint… chaque transaction est rattachée à un compte.
                 </CardDescription>
               </div>
-              <Button
-                onClick={() => {
-                  setCcEdit(null);
-                  setCcOpen(true);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                Ajouter
-              </Button>
+              <HardGate featureKey="comptes_courants" current={store.comptesCourants.length}>
+                <Button
+                  onClick={() => {
+                    setCcEdit(null);
+                    setCcOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter
+                </Button>
+              </HardGate>
             </div>
           </CardHeader>
           <CardContent>

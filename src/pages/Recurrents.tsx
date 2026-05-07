@@ -14,6 +14,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { KPICard, EmptyState } from "@/components/brand";
+import { HardGate } from "@/components/gate/HardGate";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +96,24 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
           title="Charges & revenus récurrents"
           description="Loyer, salaire, abonnements, course du dimanche… tout ce qui revient à intervalle régulier."
           action={
+            <HardGate featureKey="recurrentes" current={recurrentes.length}>
+              <Button
+                onClick={() => {
+                  setEdit(null);
+                  setOpen(true);
+                }}
+                disabled={comptesCourants.length === 0}
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter
+              </Button>
+            </HardGate>
+          }
+        />
+      )}
+      {embedded && (
+        <div className="mb-4 flex justify-end">
+          <HardGate featureKey="recurrentes" current={recurrentes.length}>
             <Button
               onClick={() => {
                 setEdit(null);
@@ -105,21 +124,7 @@ export default function RecurrentsPage({ embedded = false }: { embedded?: boolea
               <Plus className="h-4 w-4" />
               Ajouter
             </Button>
-          }
-        />
-      )}
-      {embedded && (
-        <div className="mb-4 flex justify-end">
-          <Button
-            onClick={() => {
-              setEdit(null);
-              setOpen(true);
-            }}
-            disabled={comptesCourants.length === 0}
-          >
-            <Plus className="h-4 w-4" />
-            Ajouter
-          </Button>
+          </HardGate>
         </div>
       )}
 
