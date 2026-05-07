@@ -67,7 +67,9 @@ export type FeatureKey =
   | "sync_bancaire"
   | "categorisation_auto"
   | "support"
-  | "trial";
+  | "trial"
+  | "dashboard_pages"
+  | "dashboard_widgets";
 
 /** Retourne la valeur d'une feature pour un tier donné. */
 export function getFeatureValue(key: FeatureKey, tier: TierId): FeatureValue {
@@ -138,6 +140,12 @@ export const features: Feature[] = [
     values: { free: "FAQ", plus: "Email 48h", pro: "Email priorité 24h" } },
   { key: "trial", label: "Essai gratuit 14j sans CB", section: "support",
     values: { free: false, plus: true, pro: true } },
+
+  // Dashboard
+  { key: "dashboard_pages", label: "Pages dashboard", section: "limits",
+    values: { free: 1, plus: 5, pro: "unlimited" } },
+  { key: "dashboard_widgets", label: "Widgets par page", section: "limits",
+    values: { free: 6, plus: 20, pro: "unlimited" } },
 ];
 
 export const sectionLabels: Record<Feature["section"], string> = {
