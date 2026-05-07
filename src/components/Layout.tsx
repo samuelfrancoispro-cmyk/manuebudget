@@ -1,6 +1,6 @@
 // src/components/Layout.tsx
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   PiggyBank,
@@ -20,6 +20,8 @@ import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { useStore } from "@/store/useStore";
+import { createPortalSession } from "@/lib/stripe";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -27,6 +29,24 @@ export default function Layout() {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const profile = useStore((s) => s.profile);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const trialExpired =
+    !!profile?.trialEndsAt &&
+    new Date(profile.trialEndsAt) <= new Date() &&
+    !profile?.subscriptionStatus;
+  const isPastDue = profile?.subscriptionStatus === "past_due";
+
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { url } = await createPortalSession();
+      window.location.href = url;
+    } catch {
+      setPortalLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMobileOpen(false);
@@ -111,6 +131,31 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 overflow-x-hidden pt-14 md:pt-0">
+        {/* Banner trial expiré */}
+        {trialExpired && (
+          <div className="flex items-center justify-center gap-2 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            <span>{t("subscription.trialExpiredBanner")}</span>
+            <Link to="/parametres#abonnement" className="font-medium underline underline-offset-2">
+              {t("subscription.trialExpiredCta")}
+            </Link>
+          </div>
+        )}
+
+        {/* Banner paiement échoué */}
+        {isPastDue && (
+          <div className="flex items-center justify-center gap-2 bg-red-50 px-4 py-2 text-sm text-red-900 dark:bg-red-950 dark:text-red-100">
+            <span>{t("subscription.pastDueBanner")}</span>
+            <button
+              type="button"
+              onClick={handlePortal}
+              disabled={portalLoading}
+              className="font-medium underline underline-offset-2 disabled:opacity-50"
+            >
+              {t("subscription.pastDueCta")}
+            </button>
+          </div>
+        )}
+
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
           <Outlet />
         </div>
