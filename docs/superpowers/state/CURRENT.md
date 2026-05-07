@@ -46,13 +46,27 @@ Plan : `docs/superpowers/plans/2026-05-07-cycle-c1-stripe-gating.md`
 
 ---
 
-## Prochaine étape : Cycle C2 — GoCardless
+## Décision 2026-05-07 — Stripe en mode mock jusqu'au lancement
 
-Pour démarrer : invoquer `superpowers:brainstorming` avec input = "Cycle C2 Fluxo — GoCardless Bank Account Data".
+**Stripe postponé** (création entreprise requise avant activation paiement réel).
+- `src/lib/stripe.ts` = mock `setTierDirect()` → update Supabase direct, pas d'Edge Functions.
+- Les 7 étapes manuelles Stripe (Price IDs, Tax, Portal, Secrets, Deploy, Webhook) sont documentées en session — à faire au moment du lancement.
+- Le gating (HardGate, UpgradeBadge, useEntitlement) est **fonctionnel** et testable via le sélecteur de tier dans Paramètres.
+
+**Focus actuel :** praticité + fonctionnel + qualité. Backend/API = placeholders jusqu'au lancement.
+
+---
+
+## Prochaine étape
+
+Se concentrer sur la qualité fonctionnelle de l'app :
+- Tester chaque feature, identifier ce qui casse ou manque
+- UX/design des pages existantes
+- C2 (GoCardless) et C3 (PWA+SEO) = après validation qualité prod
 
 ## Reprise au prochain `continu`
 
 1. Tu lis ce fichier.
-2. Cycles A ✅, B ✅, C1 ✅ complétés.
-3. C1 : vérifier si les actions manuelles Stripe/Supabase ont été faites (demander au user).
-4. Prochaine étape = **Cycle C2 — GoCardless** ou **Cycle C3 — PWA+SEO** selon priorité user.
+2. Cycles A ✅, B ✅, C1 ✅ (code complet, Stripe mock).
+3. Stripe = postponé (mock direct DB). Ne pas demander les actions manuelles Stripe.
+4. Focus = UX, fonctionnel, qualité — demander à l'user ce qu'il veut améliorer/tester.
