@@ -351,11 +351,11 @@ export default function ImportMappingDialog({
         </Tabs>
 
         {/* Aperçu */}
-        <div className="rounded-md border bg-muted/30 p-3">
+        <div className="rounded-md border bg-surface/50 p-3">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-medium">Aperçu</div>
             {previewOk ? (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-ink-muted">
                 {livePreview!.lignes.length} ligne{livePreview!.lignes.length > 1 ? "s" : ""} •
                 {" "}<span className="text-rose-600">−{formatEUR(debit)}</span>
                 {" / "}
@@ -367,9 +367,9 @@ export default function ImportMappingDialog({
               </div>
             )}
           </div>
-          <div className="max-h-48 overflow-auto rounded border bg-background">
+          <div className="max-h-48 overflow-auto rounded border bg-paper">
             <table className="w-full text-xs">
-              <thead className="bg-muted/50 sticky top-0">
+              <thead className="bg-surface sticky top-0">
                 <tr>
                   <th className="px-2 py-1 text-left">Date</th>
                   <th className="px-2 py-1 text-left">Libellé</th>
@@ -388,7 +388,7 @@ export default function ImportMappingDialog({
                 ))}
                 {!previewOk && (
                   <tr>
-                    <td colSpan={3} className="px-2 py-3 text-center text-muted-foreground">
+                    <td colSpan={3} className="px-2 py-3 text-center text-ink-muted">
                       Ajuste les colonnes pour voir l'aperçu.
                     </td>
                   </tr>
@@ -416,7 +416,7 @@ export default function ImportMappingDialog({
               onChange={(e) => setProfileName(e.target.value)}
             />
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-ink-muted">
             Le prochain CSV avec les mêmes colonnes sera importé automatiquement.
           </p>
         </div>

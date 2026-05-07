@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SectionHeader, EmptyState } from "@/components/brand";
 
 type Article = {
   id: string;
@@ -540,19 +541,16 @@ export default function AidePage() {
       </div>
 
       {filtres.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-ink-muted">
-            <BookOpen className="mx-auto mb-2 h-6 w-6 opacity-50" />
-            Aucun article ne correspond à « {q} ». Essaie un autre mot-clé.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<BookOpen className="h-6 w-6 opacity-50" />}
+          title="Aucun résultat"
+          description="Essayez un autre terme de recherche."
+        />
       ) : (
         <div className="space-y-6">
           {groupes.map(([cat, list]) => (
             <section key={cat}>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-                {cat}
-              </h2>
+              <SectionHeader title={cat} className="mb-2" />
               <div className="space-y-2">
                 {list.map((a) => {
                   const ouvert = open === a.id || q.trim().length > 0;

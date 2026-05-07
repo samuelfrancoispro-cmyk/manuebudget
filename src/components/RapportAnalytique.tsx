@@ -22,6 +22,7 @@ import { formatEUR, formatDate, monthLabel } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KPICard } from "@/components/brand";
 import {
   Table,
   TableBody,
@@ -84,22 +85,22 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Kpi
+        <KPICard
           label="Crédits"
           value={formatEUR(analyse.totalCredit)}
-          accent="positif"
+          deltaTone="positive"
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
         />
-        <Kpi
+        <KPICard
           label="Débits"
           value={formatEUR(analyse.totalDebit)}
-          accent="negatif"
+          deltaTone="negative"
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
         />
-        <Kpi
+        <KPICard
           label="Solde net"
           value={formatEUR(analyse.solde)}
-          accent={analyse.solde >= 0 ? "positif" : "negatif"}
+          deltaTone={analyse.solde >= 0 ? "positive" : "negative"}
         />
       </div>
 
@@ -408,30 +409,3 @@ export default function RapportAnalytique({ rapport, lignes, compte }: Props) {
   );
 }
 
-function Kpi({
-  label,
-  value,
-  accent,
-  icon,
-}: {
-  label: string;
-  value: string;
-  accent?: "positif" | "negatif";
-  icon?: React.ReactNode;
-}) {
-  const color =
-    accent === "positif" ? "text-emerald-600" : accent === "negatif" ? "text-rose-600" : "";
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription>{label}</CardDescription>
-          {icon}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-xl font-semibold ${color}`}>{value}</div>
-      </CardContent>
-    </Card>
-  );
-}

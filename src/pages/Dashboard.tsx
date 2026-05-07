@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -67,6 +67,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { KPICard } from "@/components/brand";
 
 const CHART_POSITIVE = "hsl(var(--positive))";
 const CHART_NEGATIVE = "hsl(var(--negative))";
@@ -342,29 +343,29 @@ export default function Dashboard() {
         {t("dashboard.prevSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi
+        <KPICard
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-          titre={t("dashboard.kpi.prevRevenues")}
-          valeur={formatEUR(totauxPrev.revenus)}
+          label={t("dashboard.kpi.prevRevenues")}
+          value={formatEUR(totauxPrev.revenus)}
         />
-        <Kpi
+        <KPICard
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
-          titre={t("dashboard.kpi.prevExpenses")}
-          valeur={formatEUR(totauxPrev.depenses)}
+          label={t("dashboard.kpi.prevExpenses")}
+          value={formatEUR(totauxPrev.depenses)}
         />
-        <Kpi
+        <KPICard
           icon={<Coins className="h-4 w-4" />}
-          titre={t("dashboard.kpi.prevBalance")}
-          valeur={formatEUR(totauxPrev.solde)}
-          accent={totauxPrev.solde >= 0 ? "positif" : "negatif"}
-          extra={totauxPrev.revenus > 0 ? t("dashboard.kpi.prevSavingsRate", { rate: tauxEpargnePrev.toFixed(1) }) : undefined}
+          label={t("dashboard.kpi.prevBalance")}
+          value={formatEUR(totauxPrev.solde)}
+          deltaTone={totauxPrev.solde >= 0 ? "positive" : "negative"}
+          delta={totauxPrev.revenus > 0 ? t("dashboard.kpi.prevSavingsRate", { rate: tauxEpargnePrev.toFixed(1) }) : undefined}
         />
-        <Kpi
+        <KPICard
           icon={<Wallet className="h-4 w-4" />}
-          titre={t("dashboard.kpi.accountBalance")}
-          valeur={formatEUR(soldeCompteSelection)}
-          accent={soldeCompteSelection >= 0 ? "positif" : "negatif"}
-          extra={
+          label={t("dashboard.kpi.accountBalance")}
+          value={formatEUR(soldeCompteSelection)}
+          deltaTone={soldeCompteSelection >= 0 ? "positive" : "negative"}
+          delta={
             compteFiltre
               ? t("dashboard.kpi.cumulatedBalance")
               : comptesCourants.length > 1
@@ -372,6 +373,7 @@ export default function Dashboard() {
                 : t("dashboard.kpi.accountCount", { count: comptesCourants.length })
           }
           onClick={() => navigate("/argent?tab=comptes")}
+          className="cursor-pointer transition hover:bg-surface/50"
         />
       </div>
 
@@ -380,27 +382,33 @@ export default function Dashboard() {
         {t("dashboard.realSection")}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Kpi
+        <KPICard
           icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
-          titre={t("dashboard.kpi.realRevenues")}
-          valeur={formatEUR(totaux.revenus)}
-          comparaison={delta(totaux.revenus, totauxPrec.revenus)}
+          label={t("dashboard.kpi.realRevenues")}
+          value={formatEUR(totaux.revenus)}
+          delta={delta(totaux.revenus, totauxPrec.revenus)}
           onClick={() => navigate("/argent?tab=transactions")}
+          className="cursor-pointer transition hover:bg-surface/50"
         />
-        <Kpi
+        <KPICard
           icon={<TrendingDown className="h-4 w-4 text-rose-600" />}
-          titre={t("dashboard.kpi.realExpenses")}
-          valeur={formatEUR(totaux.depenses)}
-          comparaison={delta(totaux.depenses, totauxPrec.depenses, true)}
+          label={t("dashboard.kpi.realExpenses")}
+          value={formatEUR(totaux.depenses)}
+          delta={delta(totaux.depenses, totauxPrec.depenses, true)}
           onClick={() => navigate("/argent?tab=transactions")}
+          className="cursor-pointer transition hover:bg-surface/50"
         />
-        <Kpi
+        <KPICard
           icon={<Coins className="h-4 w-4" />}
-          titre={t("dashboard.kpi.realBalance")}
-          valeur={formatEUR(totaux.solde)}
-          accent={totaux.solde >= 0 ? "positif" : "negatif"}
-          extra={totaux.revenus > 0 ? t("dashboard.kpi.realSavingsRate", { rate: tauxEpargneReel.toFixed(1) }) : undefined}
-          comparaison={delta(totaux.solde, totauxPrec.solde)}
+          label={t("dashboard.kpi.realBalance")}
+          value={formatEUR(totaux.solde)}
+          deltaTone={totaux.solde >= 0 ? "positive" : "negative"}
+          delta={
+            <>
+              {totaux.revenus > 0 && <span>{t("dashboard.kpi.realSavingsRate", { rate: tauxEpargneReel.toFixed(1) })}</span>}
+              {delta(totaux.solde, totauxPrec.solde) && <span>{delta(totaux.solde, totauxPrec.solde)}</span>}
+            </>
+          }
         />
       </div>
 
@@ -830,41 +838,3 @@ function delta(courant: number, precedent: number, inversePosNeg: boolean = fals
   return `vs N-1 : ${signe}${pct.toFixed(0)}%`;
 }
 
-function Kpi({
-  icon,
-  titre,
-  valeur,
-  extra,
-  accent,
-  comparaison,
-  onClick,
-}: {
-  icon: ReactNode;
-  titre: string;
-  valeur: string;
-  extra?: string;
-  accent?: "positif" | "negatif";
-  comparaison?: string;
-  onClick?: () => void;
-}) {
-  const color =
-    accent === "positif" ? "text-emerald-600" : accent === "negatif" ? "text-rose-600" : "";
-  return (
-    <Card
-      onClick={onClick}
-      className={onClick ? "cursor-pointer transition hover:bg-surface/30" : ""}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription>{titre}</CardDescription>
-          {icon}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-semibold ${color}`}>{valeur}</div>
-        {extra && <p className="mt-1 text-xs text-ink-muted">{extra}</p>}
-        {comparaison && <p className="mt-0.5 text-xs text-ink-muted">{comparaison}</p>}
-      </CardContent>
-    </Card>
-  );
-}

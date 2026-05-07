@@ -84,7 +84,7 @@ export default function VirementsRecurrentsTab() {
 
       {!dispoComptes && (
         <Card>
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">
+          <CardContent className="py-6 text-center text-sm text-ink-muted">
             Crée d'abord un compte courant ET un compte épargne pour pouvoir programmer un virement.
           </CardContent>
         </Card>
@@ -93,7 +93,7 @@ export default function VirementsRecurrentsTab() {
       <Card>
         <CardContent className="p-0">
           {virementsRecurrents.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
+            <p className="py-12 text-center text-sm text-ink-muted">
               Aucun virement automatique. Programme un mouvement régulier d'un compte courant
               vers un compte épargne (mise de côté mensuelle, épargne projet…).
             </p>
@@ -123,19 +123,19 @@ export default function VirementsRecurrentsTab() {
                   return (
                     <TableRow key={v.id}>
                       <TableCell className="pl-4 font-medium">{v.libelle}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-ink-muted">
                         {cc?.nom ?? "—"}
                       </TableCell>
                       <TableCell className="text-sm">
                         <span className="inline-flex items-center gap-1.5">
-                          <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                          <ArrowRightLeft className="h-3 w-3 text-ink-muted" />
                           {ce?.nom ?? "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {labelFrequence(v.frequence, v.intervalle)}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-ink-muted">
                         {proch ? formatDate(proch) : "Terminé"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
@@ -361,7 +361,7 @@ function VirementForm({
               />
             </div>
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-ink-muted">
             → {labelFrequence(frequence, parseInt(intervalle) || 1)}
           </div>
           <div className="grid grid-cols-2 gap-3">
