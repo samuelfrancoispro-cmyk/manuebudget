@@ -18,6 +18,8 @@ import type {
   Profile,
 } from "@/types";
 import type { DashboardPage, DashboardWidget, WidgetType, WidgetColSpan, WidgetRowSpan } from "@/types";
+import type { ModuleKey } from "@/types";
+import { MODULE_REGISTRY } from "@/workspace/ModuleRegistry";
 
 interface State {
   loaded: boolean;
@@ -108,6 +110,14 @@ interface State {
   dashboardPages: DashboardPage[];
   dashboardWidgets: DashboardWidget[];
 
+  // === Modules ===
+  modules: Record<ModuleKey, boolean>;
+  modulesLoaded: boolean;
+  loadModules: (userId: string) => Promise<void>;
+  toggleModule: (key: ModuleKey) => Promise<void>;
+  isModuleActive: (key: ModuleKey) => boolean;
+  seedDefaultModules: (userId: string) => Promise<void>;
+
   loadWorkspace: (userId: string) => Promise<void>;
   seedDefaultWorkspace: (userId: string) => Promise<void>;
 
@@ -172,6 +182,8 @@ export const useStore = create<State>()((set, get) => ({
   profile: null,
   dashboardPages: [],
   dashboardWidgets: [],
+  modules: {} as Record<ModuleKey, boolean>,
+  modulesLoaded: false,
 
   clearLocal: () =>
     set({
@@ -194,6 +206,8 @@ export const useStore = create<State>()((set, get) => ({
       profile: null,
       dashboardPages: [],
       dashboardWidgets: [],
+      modules: {} as Record<ModuleKey, boolean>,
+      modulesLoaded: false,
     }),
 
   loadAll: async (userId) => {
@@ -218,6 +232,8 @@ export const useStore = create<State>()((set, get) => ({
       actifs: [],
       dashboardPages: [],
       dashboardWidgets: [],
+      modules: {} as Record<ModuleKey, boolean>,
+      modulesLoaded: false,
     });
     try {
       const [
@@ -324,6 +340,7 @@ export const useStore = create<State>()((set, get) => ({
 
       // Charger le workspace (pages + widgets), seed si vide
       await get().loadWorkspace(userId);
+      await get().loadModules(userId);
     } catch (e) {
       console.error(e);
       set({ loading: false });
@@ -928,6 +945,66 @@ export const useStore = create<State>()((set, get) => ({
         w.pageId === pageId ? { ...w, order: orderedIds.indexOf(w.id) } : w
       ),
     }));
+  },
+
+  // ---------- Modules ----------
+  loadModules: async (userId) => {
+    const { data } = await supabase
+      .from('user_modules')
+      .select('module_key, active')
+      .eq('user_id', userId);
+
+    if (!data || data.length === 0) {
+      await get().seedDefaultModules(userId);
+      return;
+    }
+
+    const record = {} as Record<ModuleKey, boolean>;
+    for (const row of data) {
+      record[row.module_key as ModuleKey] = row.active;
+    }
+    for (const m of MODULE_REGISTRY) {
+      if (!(m.key in record)) {
+        record[m.key] = m.defaultActive;
+      }
+    }
+    set({ modules: record, modulesLoaded: true });
+  },
+
+  seedDefaultModules: async (userId) => {
+    const inserts = MODULE_REGISTRY.map((m) => ({
+      user_id: userId,
+      module_key: m.key,
+      active: m.defaultActive,
+      activated_at: m.defaultActive ? new Date().toISOString() : null,
+    }));
+    await supabase.from('user_modules').upsert(inserts, { onConflict: 'user_id,module_key' });
+    const record = {} as Record<ModuleKey, boolean>;
+    for (const m of MODULE_REGISTRY) record[m.key] = m.defaultActive;
+    set({ modules: record, modulesLoaded: true });
+  },
+
+  toggleModule: async (key) => {
+    const prev = get().modules[key] ?? false;
+    const next = !prev;
+    set((s) => ({ modules: { ...s.modules, [key]: next } }));
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData.user?.id ?? '';
+    const { error } = await supabase
+      .from('user_modules')
+      .upsert(
+        { user_id: userId, module_key: key, active: next, activated_at: next ? new Date().toISOString() : null },
+        { onConflict: 'user_id,module_key' }
+      );
+    if (error) {
+      set((s) => ({ modules: { ...s.modules, [key]: prev } }));
+    }
+  },
+
+  isModuleActive: (key) => {
+    const { modules } = get();
+    if (key in modules) return modules[key];
+    return MODULE_REGISTRY.find((m) => m.key === key)?.defaultActive ?? false;
   },
 }));
 
