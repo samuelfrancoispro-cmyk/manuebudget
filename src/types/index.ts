@@ -264,3 +264,26 @@ export interface DashboardWidget {
   order: number;
   config: Record<string, unknown>;
 }
+
+// === Modules D2 ===
+
+export type ModuleKey =
+  | 'budget'
+  | 'forecast'
+  | 'epargne'
+  | 'simulateur'
+  | 'rapports'
+  | 'investissements'
+  | 'patrimoine'
+  | 'dettes'
+  | 'fiscalite'
+  | 'duo'
+  | 'freelance'
+  | 'multidevise';
+
+export interface UserModule {
+  userId: string;
+  moduleKey: ModuleKey;
+  active: boolean;
+  activatedAt: string | null;
+}
