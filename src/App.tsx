@@ -12,6 +12,7 @@ import LoginPage from "./pages/Login";
 import Landing from "./pages/Landing";
 import AuthCallback from "./pages/AuthCallback";
 import Onboarding from "./pages/Onboarding";
+import Modules from "./pages/Modules";
 import { Toaster } from "./components/ui/sonner";
 import { useAuth } from "./lib/auth";
 import { useStore } from "./store/useStore";
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="/rapports" element={<Rapports />} />
           <Route path="/parametres" element={<Parametres />} />
           <Route path="/aide" element={<Aide />} />
+          <Route path="/modules" element={<Modules />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
