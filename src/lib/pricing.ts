@@ -33,5 +33,6 @@ export function setTierDirect(tier: Tier): void {
 }
 
 export function getMockTier(): Tier {
-  return (localStorage.getItem('fluxo_tier_mock') as Tier) ?? 'free';
+  const v = localStorage.getItem('fluxo_tier_mock');
+  return (v === 'plus' || v === 'pro') ? v : 'free';
 }
