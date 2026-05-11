@@ -53,13 +53,13 @@ export const createMetierSlice: StateCreator<any, [], [], MetierSlice> = (set) =
 
   loadMetier: async (userId) => {
     const [cats, ccs, txs, recs, cs, mvts, objs] = await Promise.all([
-      supabase.from('categories').select('*').order('nom'),
-      supabase.from('comptesCourants').select('*').order('nom'),
-      supabase.from('transactions').select('*').order('date', { ascending: false }),
-      supabase.from('transactionsRecurrentes').select('*').order('libelle'),
-      supabase.from('comptes').select('*').order('nom'),
-      supabase.from('mouvements').select('*').order('date', { ascending: false }),
-      supabase.from('objectifs').select('*').order('nom'),
+      supabase.from('categories').select('*').eq('user_id', userId).order('nom'),
+      supabase.from('comptesCourants').select('*').eq('user_id', userId).order('nom'),
+      supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
+      supabase.from('transactionsRecurrentes').select('*').eq('user_id', userId).order('libelle'),
+      supabase.from('comptes').select('*').eq('user_id', userId).order('nom'),
+      supabase.from('mouvements').select('*').eq('user_id', userId).order('date', { ascending: false }),
+      supabase.from('objectifs').select('*').eq('user_id', userId).order('nom'),
     ]);
     let categories = (cats.data ?? []).map((r: Record<string, unknown>) => strip<Categorie>(r));
     if (categories.length === 0) {

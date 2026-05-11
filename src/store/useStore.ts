@@ -41,7 +41,7 @@ export const useStore = create<StoreState>()((set, get, api) => ({
       set({ loaded: true, loading: false, loadedUserId: userId });
     } catch (e) {
       console.error('loadAll error:', e);
-      set({ loading: false });
+      set({ loaded: false, loading: false });
     }
   },
 }));
