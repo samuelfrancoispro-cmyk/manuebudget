@@ -1,99 +1,98 @@
 # Fluxo — État courant
 
-**Dernière mise à jour :** 2026-05-07
+**Dernière mise à jour :** 2026-05-11
 **Si tu viens d'arriver via `continu` : lis ce fichier puis reprends sans re-questionner.**
 
 ---
 
-## Où on en est
+## Vision pivot 2026-05-11
 
-Refonte complète du SaaS Fluxo en cours, organisée en **3 macro-cycles** décomposés :
+**Fluxo = bac à sable financier libre.**
+L'utilisateur construit son environnement en glissant des **modules** (briques fonctionnelles) sur un **whiteboard** (canvas infini). Pas de pages fixes, pas de colonnes. Modules configurable, redimensionnable, repositionnable. Complémentaires entre eux.
 
-| Cycle | Scope | Statut |
+**Pivot total** — tout le code D1/D2/Cycles A-B-C1 est supprimé. Nouvelle architecture from scratch.
+
+---
+
+## Roadmap (révisée 2026-05-11)
+
+| Phase | Scope | Statut |
 |---|---|---|
-| **A** | Fondations design (brand, palette, design system, pricing) | **✅ COMPLÉTÉ 2026-05-06** |
-| **B** | Refonte UI complète (Landing pro, Login + Google OAuth, Onboarding redesign, refonte 6 pages app) | **✅ COMPLÉTÉ 2026-05-06** |
-| **C1** | Stripe billing + feature gating runtime | **✅ COMPLÉTÉ 2026-05-07** |
-| **C2** | GoCardless Bank Account Data (sync bancaire Pro) | ⏳ Attend C1 |
-| **C3** | PWA polish + SEO avancé | ⏳ En attente |
+| **W1** | Whiteboard core — engine + barre flottante + 4 modules MVP + onboarding + paramètres + cleanup | **EN COURS — spec validée** |
+| **W2** | Landing refonte visuelle (skills design, proposals localhost) | ⏳ |
+| **W3** | Layouts presets, magnétisme, modules supplémentaires, micro-animations page Modules | ⏳ |
+| **C2** | GoCardless Bank Account Data | ⏳ |
+| **C3** | PWA polish + SEO | ⏳ |
+| **E** | Frontend complet — cohérence globale, animations, branding fin | ⏳ |
+| **D9** | Agent IA (en dernier) | ⏳ |
+| **F** | Lancement SaaS — Stripe réel, OAuth Google, CGV, RGPD, domaine prod | ⏳ |
+| **G** | Marketing & Growth | ⏳ |
 
 ---
 
-## Cycle C1 — état détaillé
+## W1 — état détaillé
 
-**✅ Complété le 2026-05-07**
-Spec : `docs/superpowers/specs/2026-05-07-cycle-c1-stripe-gating-design.md`
-Plan : `docs/superpowers/plans/2026-05-07-cycle-c1-stripe-gating.md`
+**Spec :** `docs/superpowers/specs/2026-05-11-w1-whiteboard-core-design.md`
+**Plan :** à créer (writing-plans)
 
-**Livrables :**
-- SQL migration : `docs/sql/2026-05-07-profiles-stripe-columns.sql` ← **à exécuter dans Supabase Dashboard**
-- 3 Edge Functions Supabase : `create-checkout-session`, `stripe-webhook`, `create-portal-session`
-- Hook `useEntitlement(featureKey, current?)` — gating synchrone basé sur le store
-- Composants `HardGate` + `UpgradeBadge` dans `src/components/gate/`
-- Banners trial expiré + past_due dans `Layout.tsx`
-- Section Abonnement dans `Parametres.tsx` (checkout, portail, toggle mensuel/annuel)
-- HardGate câblé sur : comptes courants (Parametres), comptes épargne + objectifs (Epargne), récurrentes (Recurrents), projets (Simulateur)
-- UpgradeBadge câblé sur : import CSV + export Excel (Rapports)
+### Ce qui a été fait
 
-**Actions manuelles restantes avant que C1 soit opérationnel :**
-1. Exécuter `docs/sql/2026-05-07-profiles-stripe-columns.sql` dans Supabase Dashboard > SQL Editor
-2. Créer les 4 Price IDs dans Stripe Dashboard (Plus mensuel/annuel, Pro mensuel/annuel)
-3. Activer Stripe Tax dans le dashboard
-4. Configurer le Customer Portal Stripe
-5. Ajouter les secrets dans Supabase Edge Functions (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_*, APP_URL, SUPABASE_SERVICE_ROLE_KEY)
-6. Déployer les Edge Functions : `supabase functions deploy create-checkout-session --project-ref <ref>` (idem pour les 2 autres)
-7. Enregistrer le webhook dans Stripe Dashboard → URL : `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`
+- ✅ Cleanup : toutes les specs/plans obsolètes supprimés
+- ✅ Cleanup : pages obsolètes supprimées (Argent, Epargne, Rapports, Simulateur, Transactions, etc.)
+- ✅ Cleanup : workspace D1/D2 supprimé (src/workspace/)
+- ✅ Cleanup : composants obsolètes supprimés (FloatingSidebar, MobileDock, ImportMappingDialog, etc.)
+- ✅ Spec W1 rédigée et auto-reviewée
+
+### À faire
+
+- [ ] Créer le plan d'implémentation W1 (writing-plans)
+- [ ] SQL : DROP tables obsolètes + CREATE whiteboard_sheets + whiteboard_modules + ALTER profiles
+- [ ] Refonte types/index.ts
+- [ ] Refonte pricing.ts (nouveaux feature keys)
+- [ ] Refonte store (slices)
+- [ ] WhiteboardCanvas (engine zoom/pan)
+- [ ] WhiteboardModule (drag/resize shell)
+- [ ] SheetTabs
+- [ ] FloatingToolbar (nouvelle barre)
+- [ ] 4 modules MVP (solde, depenses, recurrentes, objectif-epargne)
+- [ ] Onboarding refonte
+- [ ] Paramètres refonte
+- [ ] Page Modules (catalogue)
+- [ ] App.tsx + Layout.tsx nettoyés
+- [ ] Design proposals en localhost (skills design)
+
+### Décisions techniques
+
+- **Whiteboard engine** : canvas absolu + dnd-kit + CSS transform (zéro re-render pendant drag)
+- **Framer Motion** pour toutes les animations
+- **Zoom/pan** : `useRef` pendant interaction, `useState` au release, Supabase debounced
+- **Position layout** : `ref` + CSS transform direct pendant drag, batch upsert au pointerup
+- **Barre flottante** : `position: fixed`, déplaçable Framer Motion drag, position localStorage
+- **Stripe** : mock `setTierDirect()` jusqu'au lancement (Cycle F)
+
+### Nouvelles tables Supabase (à exécuter)
+
+Fichier SQL à créer : `docs/sql/2026-05-11-w1-whiteboard.sql`
+⚠️ À runner manuellement dans Supabase Dashboard → SQL Editor.
+
+### Tables conservées
+
+`profiles`, `user_modules`, `categories`, `transactions`, `transactionsRecurrentes`,
+`comptesCourants`, `comptes`, `mouvements`, `objectifs`
+
+### Tables à supprimer (dans le SQL)
+
+`dashboard_pages`, `dashboard_widgets`, `projets`, `achatsProjet`,
+`rapports`, `rapportLignes`, `bankProfiles`, `virementsRecurrents`, `actifs`
 
 ---
 
-## Décision 2026-05-07 — Stripe en mode mock jusqu'au lancement
+## Règles permanentes
 
-**Stripe postponé** (création entreprise requise avant activation paiement réel).
-- `src/lib/stripe.ts` = mock `setTierDirect()` → update Supabase direct, pas d'Edge Functions.
-- Les 7 étapes manuelles Stripe (Price IDs, Tax, Portal, Secrets, Deploy, Webhook) sont documentées en session — à faire au moment du lancement.
-- Le gating (HardGate, UpgradeBadge, useEntitlement) est **fonctionnel** et testable via le sélecteur de tier dans Paramètres.
-
-**Focus actuel :** praticité + fonctionnel + qualité. Backend/API = placeholders jusqu'au lancement.
-
----
-
-## Décision 2026-05-07 — Vision Fluxo v3 validée
-
-**Spec stratégique complète :** `docs/superpowers/specs/2026-05-07-fluxo-v3-vision.md`
-
-**Concept fondateur :** Bac à sable financier sobre, alimenté par IA.
-- 11 modules activables/désactivables
-- Dashboard multi-pages drag & drop (Pages/Sheets)
-- Agent IA de navigation (tutoriels, alertes, insights — pas chatbot)
-- 45 features planifiées
-
-**Modules défaut ON :** Budget, Forecast, Épargne, Simulateur, Rapports
-**Modules optionnels :** Investissements, Patrimoine, Dettes, Fiscalité, Duo, Freelance, Multi-devise
-
-**Navigation retenue :** Sidebar flottante desktop → dock bottom mobile
-
-**Cycles d'implémentation planifiés :**
-- D1 : Workspace (pages/sheets + widget drag&drop)
-- D2 : Navigation flottante + registre modules
-- D3 : Budget v2 (date de paie, fenêtre dépense, calendrier, détecteurs)
-- D4 : Forecast (algorithme 30-90j, alertes, patterns)
-- D5 : Investissements
-- D6 : Patrimoine + Net Worth + Score santé
-- D7 : Dettes & Emprunts
-- D8 : Épargne v2 (pots, défis)
-- D9 : Agent IA
-- D10 : Fiscalité
-- D11 : Rapports v2
-- D12 : Modules avancés (Duo, Freelance, Multi-devise)
-- D13 : Règles automatiques + défis
-
-**Stripe :** Postponé (mock direct DB actif). Activer au moment de la création de l'entreprise.
-**C2 GoCardless / C3 PWA+SEO :** Intégrés dans la roadmap v3 — GoCardless = sync bancaire dans module Budget.
-
-## Reprise au prochain `continu`
-
-1. Tu lis ce fichier.
-2. Cycles A ✅ B ✅ C1 ✅ + Vision v3 ✅ (spec validée).
-3. Prochain cycle = **D1 Workspace** (pages/sheets + dashboard drag&drop) ou **D2 Navigation** selon priorité user.
-4. Stripe = mock, ne pas demander les étapes manuelles.
-5. Design visuel (couleurs/animations) = délégué à Claude Design — ne pas implémenter manuellement.
+- **Stripe** : mock actif (`setTierDirect`). Cycle F = activation réelle après création entreprise.
+- **Design** : skills `/huashu-design`, `/ui-ux-pro-max`, `/impeccable`, `leonxlnx/taste-skill` — proposals visuels en localhost avant validation.
+- **Sobriété** : USP commerciale. Ne pas surcharger l'UI.
+- **SQL Supabase** : créer le fichier dans `docs/sql/`, demander au user de runner.
+- **Reprise** : si user tape `continu` → lire ce fichier puis reprendre sans re-questionner.
+- **Context engineering** : progressive disclosure, subagents pour tâches complexes, compaction à 70%.
+- **Fluidité whiteboard** : contrainte non négociable — 0 re-render pendant drag/resize.
