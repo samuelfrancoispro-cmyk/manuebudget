@@ -41,6 +41,8 @@
     --input: 0 0% 10% / 0.12;
     --ring: var(--ink);
     --radius: 0.75rem;
+    --canvas-bg: #f5f4f0;
+    --canvas-dot: #c8c4b8;
   }
 
   .dark {
@@ -80,6 +82,8 @@
     --border: 39 17% 91% / 0.08;
     --input: 39 17% 91% / 0.12;
     --ring: var(--ink);
+    --canvas-bg: #1a1916;
+    --canvas-dot: #3a3830;
   }
 
   * {
