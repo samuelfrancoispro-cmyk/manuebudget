@@ -8,20 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { TypeCompteCourant } from "@/types";
 
 const STEP = 2;
 const TOTAL = 7;
 
-type Draft = { nom: string; type: TypeCompteCourant; soldeInitial: number };
-const EMPTY_DRAFT: Draft = { nom: "", type: "perso", soldeInitial: 0 };
+type Draft = { nom: string; soldeInitial: number };
+const EMPTY_DRAFT: Draft = { nom: "", soldeInitial: 0 };
 
 export default function OnboardingComptesCourants() {
   const { t } = useTranslation();
@@ -35,8 +27,8 @@ export default function OnboardingComptesCourants() {
     setLoading(true);
     try {
       await addCompteCourant({
+        userId: "",
         nom: draft.nom.trim(),
-        type: draft.type,
         soldeInitial: draft.soldeInitial,
       });
       setDraft(EMPTY_DRAFT);
@@ -80,7 +72,6 @@ export default function OnboardingComptesCourants() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium">{c.nom}</span>
-                <span className="text-xs capitalize text-ink-muted">{c.type}</span>
               </div>
               <Button
                 variant="ghost"
@@ -105,39 +96,18 @@ export default function OnboardingComptesCourants() {
                 autoFocus
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="mb-1.5 block">{t("onboarding.step2.accountType")}</Label>
-                <Select
-                  value={draft.type}
-                  onValueChange={(v) => setDraft((d) => ({ ...d, type: v as TypeCompteCourant }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="perso">{t("onboarding.step2.typePerso")}</SelectItem>
-                    <SelectItem value="joint">{t("onboarding.step2.typeJoint")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="mb-1.5 block">{t("onboarding.step2.balance")}</Label>
-                <Input
-                  type="number"
-                  value={draft.soldeInitial}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, soldeInitial: parseFloat(e.target.value) || 0 }))
-                  }
-                />
-              </div>
+            <div>
+              <Label className="mb-1.5 block">{t("onboarding.step2.balance")}</Label>
+              <Input
+                type="number"
+                value={draft.soldeInitial}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, soldeInitial: parseFloat(e.target.value) || 0 }))
+                }
+              />
             </div>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={addAndReset}
-                disabled={!draft.nom.trim() || loading}
-              >
+              <Button size="sm" onClick={addAndReset} disabled={!draft.nom.trim() || loading}>
                 <Plus className="mr-1 h-4 w-4" />
                 {t("common.add")}
               </Button>

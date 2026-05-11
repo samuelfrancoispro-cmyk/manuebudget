@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Search, ChevronDown, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import PageHeader from "@/components/PageHeader";
+// PageHeader removed — using inline heading
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -525,10 +525,10 @@ export default function AidePage() {
 
   return (
     <>
-      <PageHeader
-        title={t("help.title")}
-        description={t("help.description")}
-      />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{t("help.title")}</h1>
+        <p className="mt-1 text-sm text-ink-muted">{t("help.description")}</p>
+      </div>
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />

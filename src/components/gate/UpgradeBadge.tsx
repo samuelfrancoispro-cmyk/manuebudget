@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEntitlement } from "@/hooks/useEntitlement";
 import { ProBadge } from "@/components/brand/ProBadge";
-import { type FeatureKey, tiers } from "@/lib/pricing";
+import { type FeatureKey } from "@/lib/pricing";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+const TIER_NAMES: Record<string, string> = { free: "Gratuit", plus: "Plus", pro: "Pro" };
 
 interface UpgradeBadgeProps {
   featureKey: FeatureKey;
@@ -23,7 +25,7 @@ export function UpgradeBadge({ featureKey, force = false }: UpgradeBadgeProps) {
 
   if (allowed && !force) return null;
 
-  const tierName = tiers.find((ti) => ti.id === requiredTier)?.name ?? requiredTier;
+  const tierName = TIER_NAMES[requiredTier] ?? requiredTier;
 
   return (
     <TooltipProvider>

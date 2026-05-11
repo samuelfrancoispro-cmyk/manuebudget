@@ -4,40 +4,39 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { tiers, formatTierPrice, type TierId } from "@/lib/pricing";
+import type { Tier } from "@/types";
 import { ProBadge } from "@/components/brand/ProBadge";
 import { useStore } from "@/store/useStore";
 import { supabase } from "@/lib/supabase";
 
+const TIERS: Array<{ id: Tier; name: string; monthlyPriceEUR: number; trialDays: number; isHighlighted?: boolean }> = [
+  { id: "free", name: "Gratuit",  monthlyPriceEUR: 0,    trialDays: 0 },
+  { id: "plus", name: "Plus",     monthlyPriceEUR: 2.99, trialDays: 14, isHighlighted: true },
+  { id: "pro",  name: "Pro",      monthlyPriceEUR: 4.99, trialDays: 14 },
+];
 
 export default function OnboardingTier() {
   const { t } = useTranslation();
   const { updateProfile, completeOnboarding } = useStore();
-  const [selected, setSelected] = useState<TierId | null>(null);
+  const [selected, setSelected] = useState<Tier | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleConfirm = async (forceTier?: TierId) => {
+  const handleConfirm = async (forceTier?: Tier) => {
     const tier = forceTier ?? selected;
     if (!tier) return;
     setSaving(true);
     try {
-      const trialDays = tiers.find((ti) => ti.id === tier)?.trialDays ?? 0;
-      const trialEndsAt =
-        trialDays > 0
-          ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
-          : null;
-
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) throw new Error("Non connecté");
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ tier, trialEndsAt })
+        .update({ tier })
         .eq("user_id", authData.user.id);
 
       if (updateError) throw updateError;
 
-      await updateProfile({ tier, trialEndsAt });
+      await updateProfile({ tier });
       await completeOnboarding();
     } catch {
       toast.error(t("common.error"));
@@ -64,7 +63,7 @@ export default function OnboardingTier() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {tiers.map((tier) => {
+            {TIERS.map((tier) => {
               const isSelected = selected === tier.id;
               const isHighlighted = !!tier.isHighlighted;
 
@@ -92,7 +91,7 @@ export default function OnboardingTier() {
                     <p className={cn("text-xs", isSelected ? "text-paper/70" : "text-ink-muted")}>
                       {tier.monthlyPriceEUR === 0
                         ? t("onboarding.step7.free")
-                        : `${formatTierPrice(tier.monthlyPriceEUR)} / mois`}
+                        : `${tier.monthlyPriceEUR.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} € / mois`}
                     </p>
                   </div>
 

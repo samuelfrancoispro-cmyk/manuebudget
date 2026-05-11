@@ -1,72 +1,46 @@
 // src/hooks/useEntitlement.ts
 import { useStore } from "@/store/useStore";
-import {
-  type FeatureKey,
-  type TierId,
-  type FeatureValue,
-  getFeatureValue,
-  getRequiredTier,
-} from "@/lib/pricing";
+import { type FeatureKey, type Tier, getFeatureValue } from "@/lib/pricing";
 
 export interface EntitlementResult {
   allowed: boolean;
   limit?: number;
-  effectiveTier: TierId;
-  reason?: "feature" | "limit" | "trial_expired";
-  requiredTier: TierId;
+  effectiveTier: Tier;
+  reason?: "feature" | "limit";
+  requiredTier: Tier;
 }
 
-/**
- * Calcule l'accès effectif à une feature selon le tier actif de l'utilisateur.
- * Synchrone — basé uniquement sur le store Zustand, zéro appel réseau.
- *
- * @param featureKey  Clé de feature définie dans pricing.ts
- * @param current     Nombre actuel d'éléments (pour les features à limite numérique)
- */
+/** Calcule l'accès effectif à une feature selon le tier actif de l'utilisateur. */
 export function useEntitlement(featureKey: FeatureKey, current?: number): EntitlementResult {
   const profile = useStore((s) => s.profile);
+  const effectiveTier: Tier = (profile?.tier as Tier) ?? "free";
 
-  const effectiveTier: TierId = (() => {
-    if (!profile) return "free";
-    if (profile.subscriptionStatus === "active") return profile.tier;
-    if (profile.subscriptionStatus === "past_due") return profile.tier;
-    if (profile.trialEndsAt && new Date(profile.trialEndsAt) > new Date()) return profile.tier;
-    return "free";
-  })();
+  const value = getFeatureValue(featureKey, effectiveTier);
 
-  const trialExpired =
-    !!profile?.trialEndsAt &&
-    new Date(profile.trialEndsAt) <= new Date() &&
-    !profile?.subscriptionStatus;
-
-  const value: FeatureValue = getFeatureValue(featureKey, effectiveTier);
-  const requiredTier = getRequiredTier(featureKey);
+  // Determine requiredTier: first tier where feature is unlocked
+  const tiers: Tier[] = ["free", "plus", "pro"];
+  let requiredTier: Tier = "pro";
+  for (const t of tiers) {
+    const v = getFeatureValue(featureKey, t);
+    if (v !== false && v !== 0) {
+      requiredTier = t;
+      break;
+    }
+  }
 
   if (value === false) {
-    return {
-      allowed: false,
-      effectiveTier,
-      reason: trialExpired ? "trial_expired" : "feature",
-      requiredTier,
-    };
-  }
-
-  if (value === "unlimited" || typeof value === "string") {
-    return { allowed: true, effectiveTier, requiredTier };
-  }
-
-  if (typeof value === "boolean") {
-    return { allowed: true, effectiveTier, requiredTier };
+    return { allowed: false, effectiveTier, reason: "feature", requiredTier };
   }
 
   if (typeof value === "number") {
     const limit = value;
+    if (!isFinite(limit)) return { allowed: true, effectiveTier, requiredTier };
     const underLimit = current === undefined || current < limit;
     return {
       allowed: underLimit,
       limit,
       effectiveTier,
-      reason: underLimit ? undefined : (trialExpired ? "trial_expired" : "limit"),
+      reason: underLimit ? undefined : "limit",
       requiredTier,
     };
   }

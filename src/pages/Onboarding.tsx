@@ -23,11 +23,12 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { profile } = useStore();
 
+  // onboarding completed = onboardingStep >= 7
   useEffect(() => {
-    if (profile?.onboardingCompleted) {
+    if (profile && profile.onboardingStep >= 7) {
       navigate("/dashboard", { replace: true });
     }
-  }, [profile?.onboardingCompleted, navigate]);
+  }, [profile?.onboardingStep, navigate]);
 
   const currentStep = Math.max(1, profile?.onboardingStep ?? 1);
   const StepComponent = STEPS[currentStep] ?? STEPS[1];

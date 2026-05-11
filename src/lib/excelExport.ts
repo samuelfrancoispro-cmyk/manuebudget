@@ -1,5 +1,7 @@
 import * as XLSX from "xlsx";
-import type { RapportCSV, RapportLigne } from "@/types";
+// Types inline — supprimés de @/types W1
+type RapportCSV = { id: string; nom: string; mois: string; dateImport: string; totalDebit: number; totalCredit: number; nbLignes: number; compteCourantId?: string; fichierNom?: string };
+type RapportLigne = { id: string; rapportId: string; date: string; libelle: string; libelleOperation?: string; infosComplementaires?: string; typeOperation?: string; categorie?: string; sousCategorie?: string; montant: number };
 import type { AnalyseRapport } from "./analytics";
 
 export function exporterRapportExcel(

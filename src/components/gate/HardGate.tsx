@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEntitlement } from "@/hooks/useEntitlement";
-import { type FeatureKey, tiers } from "@/lib/pricing";
+import { type FeatureKey } from "@/lib/pricing";
+
+const TIER_NAMES: Record<string, string> = { free: "Gratuit", plus: "Plus", pro: "Pro" };
 
 interface HardGateProps {
   featureKey: FeatureKey;
@@ -18,7 +20,7 @@ export function HardGate({ featureKey, current, children }: HardGateProps) {
 
   if (allowed) return <>{children}</>;
 
-  const tierName = tiers.find((ti) => ti.id === requiredTier)?.name ?? requiredTier;
+  const tierName = TIER_NAMES[requiredTier] ?? requiredTier;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4 text-sm text-ink-muted">

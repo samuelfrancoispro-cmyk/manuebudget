@@ -1,5 +1,17 @@
 import Papa from "papaparse";
-import type { RapportLigne } from "@/types";
+// RapportLigne — inline (type supprimé de @/types W1)
+type RapportLigne = {
+  id: string;
+  rapportId: string;
+  date: string;
+  libelle: string;
+  libelleOperation?: string;
+  infosComplementaires?: string;
+  typeOperation?: string;
+  categorie?: string;
+  sousCategorie?: string;
+  montant: number;
+};
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types publics

@@ -1,289 +1,117 @@
-import type { TierId } from "@/lib/pricing";
+// ─── Shared ───────────────────────────────────────────────
+export type Rect = { x: number; y: number; w: number; h: number };
 
-export type TypeTransaction = "revenu" | "depense";
-
-export type TypeCompteCourant = "perso" | "joint";
-
-/** Période d'une récurrence (jour, semaine, mois, année). */
-export type Frequence = "jour" | "semaine" | "mois" | "annee";
-
-export interface CompteCourant {
+// ─── Whiteboard ───────────────────────────────────────────
+export interface Sheet {
   id: string;
-  nom: string;
-  type: TypeCompteCourant;
-  soldeInitial: number;
-  /**
-   * Date ISO (YYYY-MM-DD) à laquelle `soldeInitial` est constaté.
-   * Les transactions/récurrences/virements antérieurs (date <= dateReference) sont
-   * traités comme historique informatif et n'impactent PAS le solde courant.
-   * Si non défini : compat — toutes les opérations impactent (comportement v1).
-   */
-  dateReference?: string;
-  description?: string;
+  name: string;
+  order: number;
+  zoom: number;
+  panX: number;
+  panY: number;
 }
 
-export interface Categorie {
+export type ModuleKey =
+  | 'solde' | 'depenses' | 'recurrentes' | 'objectif-epargne'
+  | 'kpi-mensuel' | 'net-worth' | 'categories' | 'pots' | 'projets'
+  | 'pea-cto' | 'performance' | 'tmi' | 'ir' | 'per' | 'famille' | 'partage';
+
+export interface WbModule {
   id: string;
+  sheetId: string;
+  moduleKey: ModuleKey;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  config: Record<string, unknown>;
+}
+
+// ─── Gating ───────────────────────────────────────────────
+export type FeatureKey =
+  | 'whiteboard_sheets'
+  | 'whiteboard_modules'
+  | 'active_modules'
+  | 'layout_presets'
+  | 'layout_save_custom'
+  | 'famille'
+  | 'sync_bancaire'
+  | 'export'
+  | 'support';
+
+export type Tier = 'free' | 'plus' | 'pro';
+
+// ─── Profile ──────────────────────────────────────────────
+export interface Profile {
+  id: string;
+  userId: string;
+  tier: Tier;
+  firstName: string | null;
+  lastName: string | null;
+  country: string | null;
+  onboardingStep: number;
+}
+
+// ─── Metier (conservé) ────────────────────────────────────
+export interface CompteCourant {
+  id: string;
+  userId: string;
   nom: string;
-  type: TypeTransaction;
-  couleur: string;
+  soldeInitial: number;
 }
 
 export interface Transaction {
   id: string;
-  date: string;
-  type: TypeTransaction;
+  userId: string;
+  compteCourantId: string;
+  categorieId: string | null;
+  libelle: string;
   montant: number;
-  categorieId: string;
-  compteCourantId?: string;
-  description?: string;
-  /** Marqueur d'origine récurrente (ne pas modifier en UI listing) */
-  recurrenteId?: string;
-  /** Marqueur d'origine virement épargne (transaction virtuelle, non éditable) */
-  virementEpargneId?: string;
+  date: string;
+  type: 'debit' | 'credit';
 }
 
 export interface TransactionRecurrente {
   id: string;
-  libelle: string;
-  type: TypeTransaction;
-  montant: number;
-  categorieId: string;
+  userId: string;
   compteCourantId?: string;
-  /**
-   * Fréquence de la récurrence. Si absente, l'app considère "mois" (compat v2).
-   */
-  frequence?: Frequence;
-  /**
-   * Tous les N période(s). Défaut 1.
-   * Ex: frequence="mois" + intervalle=2 → tous les 2 mois.
-   */
-  intervalle?: number;
-  /**
-   * Date ISO de la première occurrence (YYYY-MM-DD). Format unique v3.
-   * Si absente, l'app reconstruit depuis moisDebut + jourMois (compat v2).
-   */
-  dateDebut?: string;
-  /** Date ISO de fin (incluse) optionnelle (YYYY-MM-DD). */
-  dateFin?: string;
-  /** @deprecated v2 — utiliser dateDebut. Conservé pour compat. */
-  jourMois?: number;
-  /** @deprecated v2 — utiliser dateDebut. */
-  moisDebut?: string;
-  /** @deprecated v2 — utiliser dateFin. */
-  moisFin?: string;
-  description?: string;
+  libelle: string;
+  montant: number;
+  jourPrelevement: number;
+  type: 'debit' | 'credit';
+  actif: boolean;
 }
 
-export type TypeCompteEpargne = "livret" | "assurance-vie" | "boursier" | "autre";
+export interface Categorie {
+  id: string;
+  userId: string;
+  nom: string;
+  type: 'revenu' | 'depense';
+  couleur: string;
+  icone?: string;
+}
+
+export interface Objectif {
+  id: string;
+  userId: string;
+  nom: string;
+  montantCible: number;
+  montantActuel: number;
+  dateCible: string | null;
+}
 
 export interface CompteEpargne {
   id: string;
   nom: string;
-  soldeInitial: number;
-  /** Taux annuel en %. Pour les comptes boursiers, peut être 0 (taux non pertinent). */
-  tauxAnnuel: number;
-  type?: TypeCompteEpargne;
-  /**
-   * Date ISO (YYYY-MM-DD) à laquelle `soldeInitial` (ou `fondEuros` + actifs) est constaté.
-   * Mouvements antérieurs = historique informatif, n'impactent PAS le solde courant.
-   * Si non défini : compat — tous les mouvements impactent.
-   */
-  dateReference?: string;
-  /**
-   * Compte boursier uniquement : cash dispo (fond en euros, partie non investie).
-   * Solde du compte boursier = `fondEuros + Σ(qte × prixActuel ?? prixAchat)` + mouvements postérieurs à dateReference.
-   */
-  fondEuros?: number;
-  description?: string;
-}
-
-/**
- * Position dans un compte boursier (action, ETF, obligation…).
- * Le solde du compte est recalculé comme Σ(quantite × prixActuel) si tous les actifs ont un prixActuel.
- */
-export interface ActifBoursier {
-  id: string;
-  compteId: string;
-  nom: string;
-  /** Code ISIN optionnel (ex : FR0010315770) */
-  isin?: string;
-  quantite: number;
-  prixAchat: number;
-  dateAchat: string;
-  /** Prix actuel unitaire saisi manuellement */
-  prixActuel?: number;
-  dateMAJ?: string;
-  description?: string;
+  solde: number;
+  type: 'livret' | 'pel' | 'assurance-vie' | 'autre';
 }
 
 export interface MouvementEpargne {
   id: string;
   compteId: string;
-  date: string;
-  montant: number;
-  type: "versement" | "retrait" | "interet";
-  description?: string;
-  /** Marqueur d'origine virement récurrent (mouvement virtuel, non éditable) */
-  virementEpargneId?: string;
-}
-
-/**
- * Virement automatique d'un compte courant vers un compte épargne, à fréquence libre.
- * Génère à la volée :
- *  - une Transaction virtuelle de dépense sur le compte courant
- *  - un MouvementEpargne virtuel de versement sur le compte épargne
- * Pas de stockage des occurrences en DB (cohérent avec récurrentes).
- */
-export interface VirementRecurrent {
-  id: string;
-  libelle: string;
-  compteCourantId: string;
-  compteEpargneId: string;
-  montant: number;
-  frequence: Frequence;
-  intervalle: number;
-  /** Date ISO première occurrence (YYYY-MM-DD). */
-  dateDebut: string;
-  /** Date ISO de fin (incluse) optionnelle. */
-  dateFin?: string;
-  description?: string;
-}
-
-export interface Objectif {
-  id: string;
-  nom: string;
-  montantCible: number;
-  dateCible?: string;
-  compteId?: string;
-  description?: string;
-}
-
-export interface AchatProjet {
-  id: string;
-  projetId: string;
   libelle: string;
   montant: number;
-  /** Date prévue ou effective */
   date: string;
-  /** true = achat effectué (compte dans le coût réel) */
-  valide: boolean;
-  description?: string;
-}
-
-export interface Projet {
-  id: string;
-  nom: string;
-  montantCible: number;
-  versementMensuel: number;
-  apportInitial: number;
-  tauxAnnuel: number;
-  description?: string;
-}
-
-export interface RapportCSV {
-  id: string;
-  compteCourantId?: string;
-  nom: string;
-  mois: string;
-  dateImport: string;
-  fichierNom?: string;
-  totalDebit: number;
-  totalCredit: number;
-  nbLignes: number;
-}
-
-/**
- * Mapping CSV sauvegardé pour reconnaître automatiquement le format d'une banque.
- * Le contenu détaillé du mapping (colonnes, format date/montant…) vit dans `lib/csvParser.ts`
- * et est stocké en JSONB côté Supabase pour rester flexible.
- */
-export interface BankProfile {
-  id: string;
-  nom: string;
-  fingerprint: string;
-  mapping: unknown; // CsvMapping — typé fortement à l'usage via lib/csvParser.ts
-}
-
-export interface RapportLigne {
-  id: string;
-  rapportId: string;
-  date: string;
-  libelle: string;
-  libelleOperation?: string;
-  infosComplementaires?: string;
-  typeOperation?: string;
-  categorie?: string;
-  sousCategorie?: string;
-  /** Montant signé : négatif = débit, positif = crédit */
-  montant: number;
-}
-
-export interface Profile {
-  firstName: string | null;
-  preferredLanguage: string;
-  preferredCurrency: string;
-  onboardingCompleted: boolean;
-  onboardingStep: number;
-  tier: TierId;
-  trialEndsAt: string | null;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
-  subscriptionStatus: "active" | "past_due" | "canceled" | null;
-}
-
-// === Workspace D1 ===
-
-export type WidgetType =
-  | 'kpi_solde'
-  | 'kpi_epargne'
-  | 'kpi_mensuel'
-  | 'kpi_previsionnel'
-  | 'chart_evolution'
-  | 'chart_forecast'
-  | 'chart_categories'
-  | 'list_prochaines'
-  | 'list_objectifs';
-
-export type WidgetColSpan = 1 | 2 | 4;
-export type WidgetRowSpan = 1 | 2;
-
-export interface DashboardPage {
-  id: string;
-  name: string;
-  order: number;
-  isDefault: boolean;
-}
-
-export interface DashboardWidget {
-  id: string;
-  pageId: string;
-  widgetType: WidgetType;
-  colSpan: WidgetColSpan;
-  rowSpan: WidgetRowSpan;
-  order: number;
-  config: Record<string, unknown>;
-}
-
-// === Modules D2 ===
-
-export type ModuleKey =
-  | 'budget'
-  | 'forecast'
-  | 'epargne'
-  | 'simulateur'
-  | 'rapports'
-  | 'investissements'
-  | 'patrimoine'
-  | 'dettes'
-  | 'fiscalite'
-  | 'duo'
-  | 'freelance'
-  | 'multidevise';
-
-export interface UserModule {
-  userId: string;
-  moduleKey: ModuleKey;
-  active: boolean;
-  activatedAt: string | null;
+  type: 'depot' | 'retrait';
 }

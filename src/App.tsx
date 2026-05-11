@@ -50,8 +50,8 @@ export default function App() {
     return <SplashLoader label="Synchronisation des données…" />;
   }
 
-  // Redirect to onboarding if not completed
-  if (profile && !profile.onboardingCompleted) {
+  // Redirect to onboarding if not completed (onboardingStep < 7)
+  if (profile && (profile.onboardingStep ?? 0) < 7) {
     return (
       <>
         <Routes>

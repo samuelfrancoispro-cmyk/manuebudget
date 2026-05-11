@@ -12,13 +12,17 @@ import { Card, CardContent } from "@/components/ui/card";
 const STEP = 4;
 const TOTAL = 7;
 
-type Draft = { nom: string; soldeInitial: number };
-const EMPTY_DRAFT: Draft = { nom: "", soldeInitial: 0 };
+type Draft = { nom: string; solde: number };
+const EMPTY_DRAFT: Draft = { nom: "", solde: 0 };
+
+// "boursier" mapped to "autre" — new CompteEpargne type (W1)
+const BOURSE_TYPE = "autre" as const;
 
 export default function OnboardingBourse() {
   const { t } = useTranslation();
   const { comptes, addCompte, deleteCompte, setOnboardingStep } = useStore();
-  const bourseComptes = comptes.filter((c) => c.type === "boursier");
+  // Track bourse comptes by name prefix convention (no type="boursier" anymore)
+  const bourseComptes = comptes.filter((c) => c.type === BOURSE_TYPE);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,9 +33,8 @@ export default function OnboardingBourse() {
     try {
       await addCompte({
         nom: draft.nom.trim(),
-        tauxAnnuel: 0,
-        soldeInitial: draft.soldeInitial,
-        type: "boursier",
+        solde: draft.solde,
+        type: BOURSE_TYPE,
       });
       setDraft(EMPTY_DRAFT);
       setShowForm(false);
@@ -93,9 +96,9 @@ export default function OnboardingBourse() {
               <Label className="mb-1.5 block">{t("onboarding.step4.balance")}</Label>
               <Input
                 type="number"
-                value={draft.soldeInitial}
+                value={draft.solde}
                 onChange={(e) =>
-                  setDraft((d) => ({ ...d, soldeInitial: parseFloat(e.target.value) || 0 }))
+                  setDraft((d) => ({ ...d, solde: parseFloat(e.target.value) || 0 }))
                 }
               />
             </div>

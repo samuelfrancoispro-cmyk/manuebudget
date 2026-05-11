@@ -30,9 +30,11 @@ export default function OnboardingObjectifs() {
     setLoading(true);
     try {
       await addObjectif({
+        userId: "",
         nom: draft.nom.trim(),
         montantCible: draft.montantCible,
-        ...(draft.dateCible ? { dateCible: draft.dateCible } : {}),
+        montantActuel: 0,
+        dateCible: draft.dateCible || null,
       });
       setDraft(EMPTY_DRAFT);
       setShowForm(false);

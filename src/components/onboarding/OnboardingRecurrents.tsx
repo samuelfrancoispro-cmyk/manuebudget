@@ -9,57 +9,38 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { TypeTransaction } from "@/types";
 
 const STEP = 5;
 const TOTAL = 7;
 
-type Draft = { libelle: string; montant: number; jourMois: number; categorieId: string };
-const EMPTY_DRAFT: Draft = { libelle: "", montant: 0, jourMois: 1, categorieId: "" };
+type TabType = "credit" | "debit";
 
-function dateDebutFromJour(jour: number): string {
-  const now = new Date();
-  const day = Math.min(Math.max(1, jour), 28);
-  const candidate = new Date(now.getFullYear(), now.getMonth(), day);
-  if (candidate < now) {
-    candidate.setMonth(candidate.getMonth() + 1);
-  }
-  return candidate.toISOString().slice(0, 10);
-}
+type Draft = { libelle: string; montant: number; jourPrelevement: number };
+const EMPTY_DRAFT: Draft = { libelle: "", montant: 0, jourPrelevement: 1 };
 
 export default function OnboardingRecurrents() {
   const { t } = useTranslation();
-  const { categories, recurrentes, addRecurrente, deleteRecurrente, setOnboardingStep } =
-    useStore();
-  const [activeTab, setActiveTab] = useState<TypeTransaction>("revenu");
+  const { recurrentes, addRecurrente, deleteRecurrente, setOnboardingStep } = useStore();
+  const [activeTab, setActiveTab] = useState<TabType>("credit");
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const revenues = recurrentes.filter((r) => r.type === "revenu");
-  const expenses = recurrentes.filter((r) => r.type === "depense");
-  const currentList = activeTab === "revenu" ? revenues : expenses;
-  const filteredCategories = categories.filter((c) => c.type === activeTab);
+  const credits = recurrentes.filter((r) => r.type === "credit");
+  const debits  = recurrentes.filter((r) => r.type === "debit");
+  const currentList = activeTab === "credit" ? credits : debits;
 
   const addAndReset = async () => {
-    if (!draft.libelle.trim() || !draft.categorieId) return;
+    if (!draft.libelle.trim()) return;
     setLoading(true);
     try {
       await addRecurrente({
+        userId: "",
         libelle: draft.libelle.trim(),
         type: activeTab,
         montant: draft.montant,
-        categorieId: draft.categorieId,
-        frequence: "mois",
-        intervalle: 1,
-        dateDebut: dateDebutFromJour(draft.jourMois),
+        jourPrelevement: draft.jourPrelevement,
+        actif: true,
       });
       setDraft(EMPTY_DRAFT);
       setShowForm(false);
@@ -71,7 +52,7 @@ export default function OnboardingRecurrents() {
   };
 
   const handleTabChange = (val: string) => {
-    setActiveTab(val as TypeTransaction);
+    setActiveTab(val as TabType);
     setDraft(EMPTY_DRAFT);
     setShowForm(false);
   };
@@ -94,25 +75,25 @@ export default function OnboardingRecurrents() {
       <p className="mb-4 text-xs text-ink-muted">{t("onboarding.step5.skipNote")}</p>
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-4 w-full">
-          <TabsTrigger value="revenu" className="flex-1">
+          <TabsTrigger value="credit" className="flex-1">
             {t("onboarding.step5.revenues")}
-            {revenues.length > 0 && (
+            {credits.length > 0 && (
               <span className="ml-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
-                {revenues.length}
+                {credits.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="depense" className="flex-1">
+          <TabsTrigger value="debit" className="flex-1">
             {t("onboarding.step5.expenses")}
-            {expenses.length > 0 && (
+            {debits.length > 0 && (
               <span className="ml-1.5 rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700">
-                {expenses.length}
+                {debits.length}
               </span>
             )}
           </TabsTrigger>
         </TabsList>
 
-        {(["revenu", "depense"] as TypeTransaction[]).map((tabType) => (
+        {(["credit", "debit"] as TabType[]).map((tabType) => (
           <TabsContent key={tabType} value={tabType} className="space-y-3">
             {currentList.map((r) => (
               <Card key={r.id}>
@@ -143,7 +124,7 @@ export default function OnboardingRecurrents() {
                   <Input
                     value={draft.libelle}
                     onChange={(e) => setDraft((d) => ({ ...d, libelle: e.target.value }))}
-                    placeholder={tabType === "revenu" ? "Ex: Salaire" : "Ex: Loyer"}
+                    placeholder={tabType === "credit" ? "Ex: Salaire" : "Ex: Loyer"}
                     autoFocus
                   />
                 </div>
@@ -166,40 +147,18 @@ export default function OnboardingRecurrents() {
                       type="number"
                       min="1"
                       max="28"
-                      value={draft.jourMois}
+                      value={draft.jourPrelevement}
                       onChange={(e) =>
                         setDraft((d) => ({
                           ...d,
-                          jourMois: Math.min(28, Math.max(1, parseInt(e.target.value) || 1)),
+                          jourPrelevement: Math.min(28, Math.max(1, parseInt(e.target.value) || 1)),
                         }))
                       }
                     />
                   </div>
                 </div>
-                <div>
-                  <Label className="mb-1.5 block">{t("onboarding.step5.category")}</Label>
-                  <Select
-                    value={draft.categorieId}
-                    onValueChange={(v) => setDraft((d) => ({ ...d, categorieId: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="—" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredCategories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.nom}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={addAndReset}
-                    disabled={!draft.libelle.trim() || !draft.categorieId || loading}
-                  >
+                  <Button size="sm" onClick={addAndReset} disabled={!draft.libelle.trim() || loading}>
                     <Plus className="mr-1 h-4 w-4" />
                     {t("common.add")}
                   </Button>
@@ -211,13 +170,9 @@ export default function OnboardingRecurrents() {
                 </div>
               </div>
             ) : (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowForm(true)}
-              >
+              <Button variant="outline" className="w-full" onClick={() => setShowForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                {tabType === "revenu"
+                {tabType === "credit"
                   ? t("onboarding.step5.addRevenue")
                   : t("onboarding.step5.addExpense")}
               </Button>

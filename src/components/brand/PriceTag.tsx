@@ -1,7 +1,11 @@
 // src/components/brand/PriceTag.tsx
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { formatTierPrice } from "@/lib/pricing";
+
+function formatEUR(eur: number): string {
+  if (eur === 0) return "0 €";
+  return `${eur.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+}
 
 export interface PriceTagProps extends React.HTMLAttributes<HTMLDivElement> {
   amountEUR: number;
@@ -23,7 +27,7 @@ export const PriceTag = React.forwardRef<HTMLDivElement, PriceTagProps>(
       <div ref={ref} className={cn("flex flex-col gap-2", className)} {...props}>
         <div className="flex items-baseline gap-1">
           <span className="text-4xl font-bold tracking-[-0.025em] text-ink tabular-nums">
-            {formatTierPrice(amountEUR)}
+            {formatEUR(amountEUR)}
           </span>
           <span className="text-sm text-ink-muted">
             / {cadence === "monthly" ? "mois" : "an"}

@@ -1,4 +1,12 @@
-import type { RapportLigne } from "@/types";
+// RapportLigne — inline (type supprimé de @/types W1)
+interface RapportLigne {
+  id: string;
+  rapportId: string;
+  date: string;
+  libelle: string;
+  montant: number;
+  categorie?: string;
+}
 
 export interface CategorieAgg {
   categorie: string;
