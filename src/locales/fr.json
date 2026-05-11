@@ -32,7 +32,8 @@
     "logout": "Se déconnecter",
     "toggleTheme": "Changer le thème",
     "openMenu": "Ouvrir le menu",
-    "close": "Fermer"
+    "close": "Fermer",
+    "modules": "Mes modules"
   },
   "auth": {
     "signInDesc": "Connecte-toi à ton espace",

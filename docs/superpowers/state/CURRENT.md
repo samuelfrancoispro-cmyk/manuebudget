@@ -43,16 +43,23 @@ L'utilisateur construit son environnement en glissant des **modules** (briques f
 - ✅ Cleanup : composants obsolètes supprimés (FloatingSidebar, MobileDock, ImportMappingDialog, etc.)
 - ✅ Spec W1 rédigée et auto-reviewée
 
-### À faire
+### Plans d'implémentation (créés 2026-05-11)
 
-- [ ] Créer le plan d'implémentation W1 (writing-plans)
-- [ ] SQL : DROP tables obsolètes + CREATE whiteboard_sheets + whiteboard_modules + ALTER profiles
-- [ ] Refonte types/index.ts
-- [ ] Refonte pricing.ts (nouveaux feature keys)
-- [ ] Refonte store (slices)
-- [ ] WhiteboardCanvas (engine zoom/pan)
-- [ ] WhiteboardModule (drag/resize shell)
-- [ ] SheetTabs
+| Fichier | Contenu | Statut |
+|---|---|---|
+| `docs/superpowers/plans/2026-05-11-w1-01-fondation.md` | SQL + types + pricing + 4 slices Zustand | ✅ Rédigé |
+| `docs/superpowers/plans/2026-05-11-w1-02-engine.md` | collisionUtils + canvas zoom/pan + drag/resize + DropZoneLayer + SheetTabs | ✅ Rédigé |
+| `docs/superpowers/plans/2026-05-11-w1-03-toolbar.md` | ModuleShell + FloatingToolbar + ModuleSearch + ModuleCategoryList | ✅ Rédigé |
+| `docs/superpowers/plans/2026-05-11-w1-04-modules-mvp.md` | 4 modules MVP (Solde, Dépenses, Récurrentes, Objectif) | ✅ Rédigé |
+| `docs/superpowers/plans/2026-05-11-w1-05-integration.md` | Dashboard DnD + App.tsx + Onboarding + Modules + Paramètres | ✅ Rédigé |
+
+### À faire (implémentation)
+
+- [ ] Exécuter `01-fondation` : SQL + types + store
+- [ ] Exécuter `02-engine` : canvas + drag/resize
+- [ ] Exécuter `03-toolbar` : barre flottante
+- [ ] Exécuter `04-modules-mvp` : 4 modules
+- [ ] Exécuter `05-integration` : assemblage final
 - [ ] FloatingToolbar (nouvelle barre)
 - [ ] 4 modules MVP (solde, depenses, recurrentes, objectif-epargne)
 - [ ] Onboarding refonte

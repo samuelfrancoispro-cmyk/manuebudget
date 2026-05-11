@@ -16,12 +16,12 @@ export default function OnboardingTier() {
   const [selected, setSelected] = useState<TierId | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleConfirm = async () => {
-    if (!selected) return;
+  const handleConfirm = async (forceTier?: TierId) => {
+    const tier = forceTier ?? selected;
+    if (!tier) return;
     setSaving(true);
     try {
-      const tier = selected;
-      const trialDays = tiers.find((t) => t.id === tier)?.trialDays ?? 0;
+      const trialDays = tiers.find((ti) => ti.id === tier)?.trialDays ?? 0;
       const trialEndsAt =
         trialDays > 0
           ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
@@ -111,8 +111,16 @@ export default function OnboardingTier() {
         </div>
       </main>
 
-      <footer className="flex shrink-0 items-center justify-end border-t border-border bg-paper px-6 py-4">
-        <Button onClick={handleConfirm} disabled={!selected || saving} size="sm">
+      <footer className="flex shrink-0 items-center justify-between border-t border-border bg-paper px-6 py-4">
+        <button
+          type="button"
+          onClick={() => handleConfirm("free")}
+          disabled={saving}
+          className="text-sm text-ink-muted underline-offset-2 hover:underline disabled:opacity-50"
+        >
+          {t("onboarding.step7.skipFree")}
+        </button>
+        <Button onClick={() => handleConfirm()} disabled={!selected || saving} size="sm">
           {saving
             ? t("onboarding.step7.saving")
             : selected === "free"

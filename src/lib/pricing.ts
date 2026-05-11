@@ -69,7 +69,8 @@ export type FeatureKey =
   | "support"
   | "trial"
   | "dashboard_pages"
-  | "dashboard_widgets";
+  | "dashboard_widgets"
+  | "optional_modules";
 
 /** Retourne la valeur d'une feature pour un tier donné. */
 export function getFeatureValue(key: FeatureKey, tier: TierId): FeatureValue {
@@ -146,6 +147,8 @@ export const features: Feature[] = [
     values: { free: 1, plus: 5, pro: "unlimited" } },
   { key: "dashboard_widgets", label: "Widgets par page", section: "limits",
     values: { free: 6, plus: 20, pro: "unlimited" } },
+  { key: "optional_modules", label: "Modules optionnels", section: "limits",
+    values: { free: 1, plus: 4, pro: "unlimited" } },
 ];
 
 export const sectionLabels: Record<Feature["section"], string> = {

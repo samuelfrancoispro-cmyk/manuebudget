@@ -32,7 +32,8 @@
     "logout": "Log out",
     "toggleTheme": "Toggle theme",
     "openMenu": "Open menu",
-    "close": "Close"
+    "close": "Close",
+    "modules": "My modules"
   },
   "auth": {
     "signInDesc": "Sign in to your account",
