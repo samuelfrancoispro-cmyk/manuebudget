@@ -28,13 +28,17 @@ export default function Dashboard() {
   const sheets = useStore((s) => s.sheets);
   const wbModules = useStore((s) => s.wbModules);
   const addWbModule = useStore((s) => s.addWbModule);
+  const createSheet = useStore((s) => s.createSheet);
+  const setActiveSheet = useStore((s) => s.setActiveSheet);
   const profile = useStore((s) => s.profile);
+  const loaded = useStore((s) => s.loaded);
 
   const activeSheet = sheets.find((s) => s.id === activeSheetId);
 
   const [draggingKey, setDraggingKey] = useState<ModuleKey | null>(null);
   const [isOver, setIsOver] = useState(false);
   const [canDrop, setCanDrop] = useState(false);
+  const [creatingSheet, setCreatingSheet] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -58,8 +62,11 @@ export default function Dashboard() {
     const panX = activeSheet?.panX ?? 0;
     const panY = activeSheet?.panY ?? 0;
 
-    const pointerEvent = e.activatorEvent as PointerEvent;
-    const worldPos = screenToWorld(pointerEvent.clientX, pointerEvent.clientY, canvasRect, panX, panY, zoom);
+    // Drop position = activatorEvent (pointerdown) + drag delta = actual drop point
+    const activator = e.activatorEvent as PointerEvent;
+    const dropX = activator.clientX + e.delta.x;
+    const dropY = activator.clientY + e.delta.y;
+    const worldPos = screenToWorld(dropX, dropY, canvasRect, panX, panY, zoom);
     const rect = { x: worldPos.x - meta.defaultW / 2, y: worldPos.y - meta.defaultH / 2, w: meta.defaultW, h: meta.defaultH };
     const others = wbModules.filter((m) => m.sheetId === activeSheetId).map(({ x, y, w, h }) => ({ x, y, w, h }));
 
@@ -75,14 +82,43 @@ export default function Dashboard() {
     await addWbModule(activeSheetId, { moduleKey: mk, ...rect, config: {} });
   }, [activeSheetId, activeSheet, wbModules, addWbModule, profile]);
 
-  const activeModules = activeSheetId
-    ? wbModules.filter((m) => m.sheetId === activeSheetId)
-    : [];
+  // If sheets not loaded yet, show nothing
+  if (!loaded) return null;
+
+  // SQL migration not yet run: no tables → sheets empty
+  if (loaded && sheets.length === 0) {
+    return (
+      <div className="flex flex-col h-screen bg-background items-center justify-center gap-4">
+        <p className="text-sm text-muted-foreground text-center max-w-sm">
+          Tables Supabase manquantes.<br />
+          Lance le fichier <code className="text-xs bg-muted px-1 py-0.5 rounded">docs/sql/2026-05-11-w1-whiteboard.sql</code> dans le SQL Editor Supabase, puis recharge.
+        </p>
+        <button
+          disabled={creatingSheet}
+          onClick={async () => {
+            setCreatingSheet(true);
+            try {
+              const sheet = await createSheet('Ma sheet');
+              setActiveSheet(sheet.id);
+            } catch {
+              // tables not created yet — user must run SQL
+            }
+            setCreatingSheet(false);
+          }}
+          className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded-lg disabled:opacity-50"
+        >
+          {creatingSheet ? 'Création…' : 'Créer une sheet quand même'}
+        </button>
+      </div>
+    );
+  }
 
   if (!activeSheetId) return null;
 
+  const activeModules = wbModules.filter((m) => m.sheetId === activeSheetId);
+
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       <SheetTabs />
       <DndContext
         sensors={sensors}
@@ -91,7 +127,7 @@ export default function Dashboard() {
         onDragStart={(e) => setDraggingKey(e.active.data.current?.moduleKey ?? null)}
         onDragCancel={() => { setIsOver(false); setDraggingKey(null); }}
       >
-        <div ref={canvasRef} className="flex-1 relative">
+        <div ref={canvasRef} className="flex-1 relative min-h-0">
           <WhiteboardCanvas sheetId={activeSheetId}>
             {activeModules.map((mod) => {
               const Component = MODULE_COMPONENTS[mod.moduleKey];
@@ -104,13 +140,13 @@ export default function Dashboard() {
           </WhiteboardCanvas>
           <DropZoneLayer isOver={isOver} canDrop={canDrop} />
         </div>
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {draggingKey && (
             <motion.div
-              className="bg-card border border-border rounded-xl px-3 py-2 text-sm font-medium shadow-2xl opacity-90"
-              initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+              className="bg-card border border-border rounded-xl px-3 py-2 text-xs font-medium shadow-2xl opacity-90"
+              initial={{ scale: 0.92 }} animate={{ scale: 1 }}
             >
-              {draggingKey}
+              {draggingKey.replace(/-/g, ' ')}
             </motion.div>
           )}
         </DragOverlay>

@@ -24,8 +24,8 @@ export default function WhiteboardModule({ module, zoom, children }: Props) {
   const wbModules = useStore((s) => s.wbModules);
 
   const elRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-  const resizing = useRef<Handle | null>(null);
+  // mode: 'idle' | 'drag' | Handle
+  const mode = useRef<'idle' | 'drag' | Handle>('idle');
   const startPointer = useRef({ x: 0, y: 0 });
   const startRect = useRef<Rect>({ x: module.x, y: module.y, w: module.w, h: module.h });
 
@@ -40,65 +40,73 @@ export default function WhiteboardModule({ module, zoom, children }: Props) {
     applyPosition(module.x, module.y, module.w, module.h);
   }, [module.x, module.y, module.w, module.h, applyPosition]);
 
-  const onDragPointerDown = useCallback((e: React.PointerEvent) => {
+  // Single pointerdown on the outer container — checks data attrs to know what to do
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const handleKey = target.dataset.handle as Handle | undefined;
+    const isDrag = !!target.closest('[data-drag-handle]');
+    if (!handleKey && !isDrag) return;
+
     e.stopPropagation();
-    dragging.current = true;
+    mode.current = handleKey ?? 'drag';
     startPointer.current = { x: e.clientX, y: e.clientY };
     startRect.current = { x: module.x, y: module.y, w: module.w, h: module.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    if (elRef.current) elRef.current.style.willChange = 'transform';
+    // Capture on the outer element so all subsequent events come here
+    elRef.current?.setPointerCapture(e.pointerId);
+    if (elRef.current) { elRef.current.style.willChange = 'transform'; elRef.current.style.zIndex = '20'; }
   }, [module.x, module.y, module.w, module.h]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current && !resizing.current) return;
+    if (mode.current === 'idle') return;
     const dx = (e.clientX - startPointer.current.x) / zoom;
     const dy = (e.clientY - startPointer.current.y) / zoom;
     const s = startRect.current;
 
-    if (dragging.current) {
-      applyPosition(s.x + dx, s.y + dy, s.w, s.h);
+    if (mode.current === 'drag') {
+      const nx = s.x + dx, ny = s.y + dy;
+      applyPosition(nx, ny, s.w, s.h);
       const others = wbModules.filter((m) => m.id !== module.id).map(({ x, y, w, h }) => ({ x, y, w, h }));
-      const newRect = { x: s.x + dx, y: s.y + dy, w: s.w, h: s.h };
-      if (elRef.current) {
-        elRef.current.style.outline = hasCollision(newRect, others) ? '2px solid #ef4444' : 'none';
-      }
+      if (elRef.current)
+        elRef.current.style.outline = hasCollision({ x: nx, y: ny, w: s.w, h: s.h }, others) ? '2px solid #ef4444' : 'none';
+      return;
     }
 
-    if (resizing.current) {
-      const h = resizing.current;
-      let x = s.x, y = s.y, w = s.w, wh = s.h;
-      const minW = 200, minH = 150;
-      if (h.includes('e')) w = Math.max(minW, s.w + dx);
-      if (h.includes('s')) wh = Math.max(minH, s.h + dy);
-      if (h.includes('w')) { x = s.x + dx; w = Math.max(minW, s.w - dx); }
-      if (h.includes('n')) { y = s.y + dy; wh = Math.max(minH, s.h - dy); }
-      applyPosition(x, y, w, wh);
-    }
+    const h = mode.current as Handle;
+    let x = s.x, y = s.y, w = s.w, rh = s.h;
+    const minW = 200, minH = 150;
+    if (h.includes('e')) w  = Math.max(minW, s.w + dx);
+    if (h.includes('s')) rh = Math.max(minH, s.h + dy);
+    if (h.includes('w')) { x = s.x + dx; w  = Math.max(minW, s.w - dx); }
+    if (h.includes('n')) { y = s.y + dy; rh = Math.max(minH, s.h - dy); }
+    applyPosition(x, y, w, rh);
   }, [zoom, module.id, wbModules, applyPosition]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current && !resizing.current) return;
+    if (mode.current === 'idle') return;
     const dx = (e.clientX - startPointer.current.x) / zoom;
     const dy = (e.clientY - startPointer.current.y) / zoom;
     const s = startRect.current;
     let finalRect: Rect;
 
-    if (dragging.current) {
+    if (mode.current === 'drag') {
       finalRect = { x: s.x + dx, y: s.y + dy, w: s.w, h: s.h };
     } else {
-      const h = resizing.current!;
-      let x = s.x, y = s.y, w = s.w, wh = s.h;
+      const h = mode.current as Handle;
+      let x = s.x, y = s.y, w = s.w, rh = s.h;
       const minW = 200, minH = 150;
-      if (h.includes('e')) w = Math.max(minW, s.w + dx);
-      if (h.includes('s')) wh = Math.max(minH, s.h + dy);
-      if (h.includes('w')) { x = s.x + dx; w = Math.max(minW, s.w - dx); }
-      if (h.includes('n')) { y = s.y + dy; wh = Math.max(minH, s.h - dy); }
-      finalRect = { x, y, w, h: wh };
+      if (h.includes('e')) w  = Math.max(minW, s.w + dx);
+      if (h.includes('s')) rh = Math.max(minH, s.h + dy);
+      if (h.includes('w')) { x = s.x + dx; w  = Math.max(minW, s.w - dx); }
+      if (h.includes('n')) { y = s.y + dy; rh = Math.max(minH, s.h - dy); }
+      finalRect = { x, y, w, h: rh };
     }
 
-    dragging.current = false;
-    resizing.current = null;
-    if (elRef.current) { elRef.current.style.outline = 'none'; elRef.current.style.willChange = 'auto'; }
+    mode.current = 'idle';
+    if (elRef.current) {
+      elRef.current.style.outline = 'none';
+      elRef.current.style.willChange = 'auto';
+      elRef.current.style.zIndex = '';
+    }
     updateWbModuleLayout(module.id, finalRect);
     flushLayoutUpdates();
   }, [zoom, module.id, updateWbModuleLayout, flushLayoutUpdates]);
@@ -107,31 +115,27 @@ export default function WhiteboardModule({ module, zoom, children }: Props) {
     <motion.div
       ref={elRef as React.RefObject<HTMLDivElement>}
       className="absolute select-none"
-      style={{ top: 0, left: 0, willChange: 'auto' }}
-      initial={{ scale: 0.85, opacity: 0 }}
+      style={{ top: 0, left: 0 }}
+      initial={{ scale: 0.88, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.85, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      exit={{ scale: 0.88, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+      onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
+      {/* Invisible drag zone over the module header */}
       <div
-        className="absolute top-0 left-0 right-8 h-10 cursor-grab z-10"
-        onPointerDown={onDragPointerDown}
+        data-drag-handle
+        className="absolute top-0 left-0 right-10 h-9 z-10 cursor-grab active:cursor-grabbing"
       />
       {children}
       {HANDLES.map((h) => (
         <div
           key={h}
-          className="absolute opacity-0 hover:opacity-100 w-3 h-3 bg-primary rounded-full z-20 transition-opacity"
+          data-handle={h}
+          className="absolute w-3 h-3 opacity-0 hover:opacity-100 bg-primary rounded-full z-20 transition-opacity"
           style={{ cursor: CURSOR[h], ...handlePosition(h) }}
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            resizing.current = h;
-            startPointer.current = { x: e.clientX, y: e.clientY };
-            startRect.current = { x: module.x, y: module.y, w: module.w, h: module.h };
-            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-          }}
         />
       ))}
     </motion.div>
@@ -139,17 +143,16 @@ export default function WhiteboardModule({ module, zoom, children }: Props) {
 }
 
 function handlePosition(h: Handle): React.CSSProperties {
-  const mid = 'calc(50% - 6px)';
-  const edge = '-6px';
+  const mid = 'calc(50% - 6px)', edge = '-5px';
   const map: Record<Handle, React.CSSProperties> = {
-    n:  { top: edge,  left: mid   },
-    ne: { top: edge,  right: edge },
-    e:  { top: mid,   right: edge },
-    se: { bottom: edge, right: edge },
-    s:  { bottom: edge, left: mid },
-    sw: { bottom: edge, left: edge },
-    w:  { top: mid,   left: edge  },
-    nw: { top: edge,  left: edge  },
+    n:  { top: edge,    left: mid    },
+    ne: { top: edge,    right: edge  },
+    e:  { top: mid,     right: edge  },
+    se: { bottom: edge, right: edge  },
+    s:  { bottom: edge, left: mid    },
+    sw: { bottom: edge, left: edge   },
+    w:  { top: mid,     left: edge   },
+    nw: { top: edge,    left: edge   },
   };
   return map[h];
 }
